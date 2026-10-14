@@ -1,0 +1,6 @@
+{
+  "name": "TITAN AI",
+  "description": "The Ultimate Collective Intelligence Platform — Multiple Models, Shared Context, Collaborative Reasoning, One Unified Result.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
