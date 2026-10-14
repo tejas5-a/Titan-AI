@@ -70128,11 +70128,12 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+    const procResources = process.resourcesPath || "";
     const possibleDistPaths = [
       import_path.default.resolve(appDirname, "dist"),
       import_path.default.resolve(process.cwd(), "dist"),
-      import_path.default.resolve(process.resourcesPath || "", "dist"),
-      import_path.default.resolve(process.resourcesPath || "", "app.asar/dist")
+      import_path.default.resolve(procResources, "dist"),
+      import_path.default.resolve(procResources, "app.asar/dist")
     ];
     let distPath = possibleDistPaths[0];
     for (const p of possibleDistPaths) {

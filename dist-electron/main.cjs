@@ -54,7 +54,7 @@ async function waitForBackend(port, timeoutMs = 2e4) {
 function startBackendServer() {
   return new Promise((resolve, reject) => {
     const isDev = !import_electron.app.isPackaged;
-    const serverPath = isDev ? import_path.default.join(__dirname, "../server.ts") : import_path.default.join(process.resourcesPath, "server.cjs");
+    const serverPath = isDev ? import_path.default.join(__dirname, "../server.ts") : import_path.default.join(process.resourcesPath || "", "server.cjs");
     const env = {
       ...process.env,
       PORT: String(BACKEND_PORT),
