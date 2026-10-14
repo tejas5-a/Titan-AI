@@ -8,12 +8,7 @@ import {
   Edit2,
   Search,
   FileCode,
-  MessagesSquare,
-  Check,
   X,
-  ExternalLink,
-  Tag,
-  Clock,
 } from 'lucide-react';
 
 export function ProjectsView() {
@@ -33,7 +28,6 @@ export function ProjectsView() {
   const [newDesc, setNewDesc] = useState('');
   const [newTags, setNewTags] = useState('');
 
-  // Editing state
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   const filteredProjects = projects.filter(
@@ -65,16 +59,16 @@ export function ProjectsView() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+    <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      {/* Claude Style Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-[#e8e2d8] dark:border-[#33302c]">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+          <div className="p-2.5 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#c25e2e] dark:text-[#d97757] border border-[#e5ded0] dark:border-[#38342e]">
             <FolderGit2 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Projects & Workspaces</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <h2 className="font-serif text-xl font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">Projects & Workspaces</h2>
+            <p className="text-xs text-[#736e65] dark:text-[#9e978b]">
               Isolate code files, research context, and collective conversations into dedicated project domains.
             </p>
           </div>
@@ -82,7 +76,7 @@ export function ProjectsView() {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs transition-colors cursor-pointer shadow-xs"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] text-white font-medium text-xs transition-colors cursor-pointer shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>New Project</span>
@@ -96,9 +90,9 @@ export function ProjectsView() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search projects by name or tag..."
-          className="w-full text-xs rounded-lg bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 pl-9 pr-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+          className="w-full text-xs rounded-xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] pl-9 pr-3.5 py-2.5 text-[#1f1e1d] dark:text-[#ede8e1] focus:outline-hidden focus:ring-2 focus:ring-[#c25e2e]/30 focus:border-[#c25e2e]"
         />
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+        <Search className="w-4 h-4 text-[#8c857b] absolute left-3 top-3" />
       </div>
 
       {/* Projects Grid */}
@@ -108,22 +102,22 @@ export function ProjectsView() {
           return (
             <div
               key={proj.id}
-              className={`rounded-2xl border p-5 flex flex-col justify-between transition-all bg-white dark:bg-[#131620] ${
+              className={`rounded-2xl border p-5 flex flex-col justify-between transition-all bg-white dark:bg-[#22201e] ${
                 isActive
-                  ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-xs'
-                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                  ? 'border-[#c25e2e] dark:border-[#d97757] ring-1 ring-[#c25e2e]/20 shadow-xs'
+                  : 'border-[#ded7cb] dark:border-[#383530] hover:border-[#c25e2e]/40'
               }`}
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                    <div className="p-2 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#c25e2e] dark:text-[#d97757]">
                       <FolderGit2 className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{proj.name}</h3>
+                      <h3 className="font-serif text-sm font-bold text-[#1f1e1d] dark:text-[#ede8e1]">{proj.name}</h3>
                       {isActive && (
-                        <span className="text-[10px] uppercase font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                        <span className="text-[10px] uppercase font-mono font-semibold text-[#c25e2e] dark:text-[#d97757]">
                           Active Workspace
                         </span>
                       )}
@@ -133,22 +127,22 @@ export function ProjectsView() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setEditingProject(proj)}
-                      className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
-                      title="Rename/Edit"
+                      className="p-1 rounded-lg text-[#8c857b] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1] cursor-pointer"
+                      title="Edit"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(proj.id, proj.name)}
-                      className="p-1 rounded text-slate-400 hover:text-rose-600 cursor-pointer"
-                      title="Delete Project"
+                      className="p-1 rounded-lg text-[#8c857b] hover:text-rose-600 cursor-pointer"
+                      title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
+                <p className="text-xs text-[#615c54] dark:text-[#9e988e] leading-relaxed line-clamp-2">
                   {proj.description || 'No description provided.'}
                 </p>
 
@@ -157,7 +151,7 @@ export function ProjectsView() {
                     {proj.tags.map((tag, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                        className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#f5f0e6] dark:bg-[#282622] text-[#736e65] dark:text-[#9e978b] border border-[#e5ded0] dark:border-[#38342e]"
                       >
                         #{tag}
                       </span>
@@ -166,19 +160,17 @@ export function ProjectsView() {
                 )}
               </div>
 
-              <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-3 text-slate-400 text-[11px]">
-                  <span className="flex items-center gap-1">
-                    <FileCode className="w-3.5 h-3.5" />
-                    {proj.files.length} files
-                  </span>
-                </div>
+              <div className="pt-4 mt-4 border-t border-[#f0ebd5] dark:border-[#2d2a27] flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1 text-[#8c857b] text-[11px] font-mono">
+                  <FileCode className="w-3.5 h-3.5" />
+                  {proj.files.length} files
+                </span>
 
                 <div className="flex items-center gap-1.5">
                   {!isActive && (
                     <button
                       onClick={() => setActiveProject(proj)}
-                      className="px-2.5 py-1 text-xs rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium cursor-pointer"
+                      className="px-2.5 py-1 text-xs rounded-lg bg-[#f5f0e6] dark:bg-[#282622] hover:bg-[#ede5d5] text-[#2d2b28] dark:text-[#ded8ce] font-medium cursor-pointer"
                     >
                       Set Active
                     </button>
@@ -188,7 +180,7 @@ export function ProjectsView() {
                       setActiveProject(proj);
                       setActiveView('coding');
                     }}
-                    className="px-2.5 py-1 text-xs rounded bg-indigo-600 hover:bg-indigo-700 text-white font-medium cursor-pointer"
+                    className="px-2.5 py-1 text-xs rounded-lg bg-[#c25e2e] hover:bg-[#b05225] text-white font-medium cursor-pointer"
                   >
                     Open Studio
                   </button>
@@ -201,47 +193,47 @@ export function ProjectsView() {
 
       {/* CREATE PROJECT MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Create New Project</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 bg-[#181716]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between pb-2 border-b border-[#f0ebd5] dark:border-[#2d2a27]">
+              <h3 className="font-serif text-sm font-bold text-[#1f1e1d] dark:text-[#ede8e1]">Create New Project</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-[#8c857b] hover:text-[#1f1e1d]">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Project Name</label>
+                <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">Project Name</label>
                 <input
                   type="text"
                   required
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. Distributed Consensus Engine"
-                  className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
+                  className="w-full rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3 py-2 text-[#1f1e1d] dark:text-[#ede8e1]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Description</label>
+                <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   placeholder="Brief summary of goals and architecture..."
-                  className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 text-slate-900 dark:text-slate-100"
+                  className="w-full rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] p-2 text-[#1f1e1d] dark:text-[#ede8e1]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Tags (Comma-separated)</label>
+                <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">Tags (Comma-separated)</label>
                 <input
                   type="text"
                   value={newTags}
                   onChange={(e) => setNewTags(e.target.value)}
                   placeholder="Backend, AI, TypeScript"
-                  className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
+                  className="w-full rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3 py-2 text-[#1f1e1d] dark:text-[#ede8e1]"
                 />
               </div>
 
@@ -249,13 +241,13 @@ export function ProjectsView() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+                  className="px-4 py-2 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#2d2b28] dark:text-[#ded8ce] font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                  className="px-4 py-2 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] text-white font-medium"
                 >
                   Create
                 </button>
@@ -267,40 +259,40 @@ export function ProjectsView() {
 
       {/* EDIT MODAL */}
       {editingProject && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Edit Project</h3>
-              <button onClick={() => setEditingProject(null)} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 bg-[#181716]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between pb-2 border-b border-[#f0ebd5] dark:border-[#2d2a27]">
+              <h3 className="font-serif text-sm font-bold text-[#1f1e1d] dark:text-[#ede8e1]">Edit Project</h3>
+              <button onClick={() => setEditingProject(null)} className="text-[#8c857b] hover:text-[#1f1e1d]">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Project Name</label>
+                <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">Project Name</label>
                 <input
                   type="text"
                   value={editingProject.name}
                   onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
-                  className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
+                  className="w-full rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3 py-2 text-[#1f1e1d] dark:text-[#ede8e1]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Description</label>
+                <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={editingProject.description}
                   onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
-                  className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 text-slate-900 dark:text-slate-100"
+                  className="w-full rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] p-2 text-[#1f1e1d] dark:text-[#ede8e1]"
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-3">
                 <button
                   onClick={() => setEditingProject(null)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+                  className="px-4 py-2 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#2d2b28] dark:text-[#ded8ce] font-medium"
                 >
                   Cancel
                 </button>
@@ -309,7 +301,7 @@ export function ProjectsView() {
                     updateProject(editingProject);
                     setEditingProject(null);
                   }}
-                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                  className="px-4 py-2 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] text-white font-medium"
                 >
                   Save Changes
                 </button>

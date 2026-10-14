@@ -58,44 +58,44 @@ export function DebateStudio() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+    <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      {/* Claude Style Header */}
+      <div className="flex items-center gap-3 pb-4 border-b border-[#e8e2d8] dark:border-[#33302c]">
+        <div className="p-2.5 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#c25e2e] dark:text-[#d97757] border border-[#e5ded0] dark:border-[#38342e]">
           <Swords className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">AI Debate Studio</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Stage rigorous multi-turn debates between distinct models to expose blind spots and establish verifiable consensus.
+          <h2 className="font-serif text-xl font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">AI Debate Studio</h2>
+          <p className="text-xs text-[#736e65] dark:text-[#9e978b]">
+            Stage structured multi-turn debates between models to expose trade-offs and reach verifiable consensus.
           </p>
         </div>
       </div>
 
       {/* Setup Form */}
-      <form onSubmit={startDebate} className="rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-xs">
+      <form onSubmit={startDebate} className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-5 space-y-4 shadow-xs">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[#8a8377] dark:text-[#8f887f] mb-1.5">
             Debate Proposition / Architecture Decision
           </label>
           <input
             type="text"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="e.g., In-memory SQLite vs Distributed Postgres for AI Studio state management"
-            className="w-full text-sm rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-purple-500"
+            placeholder="e.g. In-memory SQLite vs Distributed Postgres for AI Studio state management"
+            className="w-full text-xs rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3.5 py-2.5 text-[#1f1e1d] dark:text-[#ede8e1] focus:outline-hidden focus:ring-2 focus:ring-[#c25e2e]/30 focus:border-[#c25e2e]"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 text-xs">
           <div>
-            <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">
+            <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">
               Debater 1 (Advocate)
             </label>
             <select
               value={modelA}
               onChange={(e) => setModelA(e.target.value)}
-              className="w-full text-xs rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200"
+              className="w-full text-xs rounded-lg bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3 py-2 text-[#1f1e1d] dark:text-[#ede8e1]"
             >
               {models.map((m) => (
                 <option key={m.id} value={m.name}>
@@ -106,13 +106,13 @@ export function DebateStudio() {
           </div>
 
           <div>
-            <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">
+            <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">
               Debater 2 (Challenger)
             </label>
             <select
               value={modelB}
               onChange={(e) => setModelB(e.target.value)}
-              className="w-full text-xs rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200"
+              className="w-full text-xs rounded-lg bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3 py-2 text-[#1f1e1d] dark:text-[#ede8e1]"
             >
               {models.map((m) => (
                 <option key={m.id} value={m.name}>
@@ -123,17 +123,17 @@ export function DebateStudio() {
           </div>
 
           <div>
-            <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">
+            <label className="block text-[#615c54] dark:text-[#9e988e] font-medium mb-1">
               Intensity & Exchange Rounds
             </label>
             <select
               value={rounds}
               onChange={(e) => setRounds(parseInt(e.target.value))}
-              className="w-full text-xs rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200"
+              className="w-full text-xs rounded-lg bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3 py-2 text-[#1f1e1d] dark:text-[#ede8e1]"
             >
               <option value={1}>1 Round (Concise Exchange)</option>
-              <option value={2}>2 Rounds (Deep Critique & Rebuttal)</option>
-              <option value={3}>3 Rounds (Exhaustive Adversarial Probe)</option>
+              <option value={2}>2 Rounds (Critique & Rebuttal)</option>
+              <option value={3}>3 Rounds (Exhaustive Probe)</option>
             </select>
           </div>
         </div>
@@ -142,7 +142,7 @@ export function DebateStudio() {
           <button
             type="submit"
             disabled={isRunning || !topic.trim()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-medium text-xs transition-colors cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] disabled:opacity-40 text-white font-medium text-xs transition-colors cursor-pointer shadow-xs"
           >
             {isRunning ? (
               <>
@@ -151,7 +151,7 @@ export function DebateStudio() {
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Initiate Structured Debate</span>
               </>
             )}
@@ -170,29 +170,27 @@ export function DebateStudio() {
       {/* Debate Results Output */}
       {debateResult && (
         <div className="space-y-6">
-          {/* Timeline phases */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {debateResult.timeline?.map((step: any, i: number) => (
               <div
                 key={i}
-                className="p-3 rounded-xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 flex items-center gap-2"
+                className="p-3 rounded-xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] flex items-center gap-2 shadow-2xs"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <div className="font-semibold text-slate-800 dark:text-slate-200">{step.phase}</div>
-                  <div className="text-[10px] text-slate-400 capitalize">{step.status}</div>
+                  <div className="font-serif font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">{step.phase}</div>
+                  <div className="text-[10px] text-[#8c857b] capitalize">{step.status}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Transcript card */}
-          <div className="rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 text-xs">
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
+          <div className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#f0ebd5] dark:border-[#2d2a27] text-xs">
+              <span className="font-serif font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
                 Official Debate Transcript & Consensus Assessment
               </span>
-              <span className="font-mono text-slate-400 text-[11px]">
+              <span className="font-mono text-[#8c857b] text-[11px]">
                 {debateResult.latencyMs}ms elapsed
               </span>
             </div>

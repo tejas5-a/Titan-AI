@@ -69,21 +69,21 @@ ${session.rounds.round4_synthesis.synthesisText}
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+      {/* Claude Style Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-[#e8e2d8] dark:border-[#33302c]">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+          <div className="p-2.5 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#c25e2e] dark:text-[#d97757] border border-[#e5ded0] dark:border-[#38342e]">
             <History className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Conversation History</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <h2 className="font-serif text-xl font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">Conversation History</h2>
+            <p className="text-xs text-[#736e65] dark:text-[#9e978b]">
               Searchable persistent archive of collective reasoning rounds, peer reviews, and final syntheses.
             </p>
           </div>
         </div>
 
-        <span className="text-xs font-mono text-slate-400">
+        <span className="text-xs font-mono text-[#8c857b]">
           {sessions.length} Recorded Sessions
         </span>
       </div>
@@ -95,14 +95,14 @@ ${session.rounds.round4_synthesis.synthesisText}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search through past conversations and questions..."
-          className="w-full text-xs rounded-lg bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 pl-9 pr-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+          className="w-full text-xs rounded-xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] pl-9 pr-3.5 py-2.5 text-[#1f1e1d] dark:text-[#ede8e1] focus:outline-hidden focus:ring-2 focus:ring-[#c25e2e]/30 focus:border-[#c25e2e]"
         />
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+        <Search className="w-4 h-4 text-[#8c857b] absolute left-3 top-3" />
       </div>
 
       {/* Sessions List */}
       {filteredSessions.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center text-xs text-slate-400 bg-white dark:bg-[#131620]">
+        <div className="rounded-2xl border border-[#ded7cb] dark:border-[#383530] p-12 text-center text-xs text-[#8c857b] bg-white dark:bg-[#22201e]">
           No past sessions found. Start a collective chat to record your first multi-model session.
         </div>
       ) : (
@@ -110,14 +110,14 @@ ${session.rounds.round4_synthesis.synthesisText}
           {filteredSessions.map((session) => (
             <div
               key={session.sessionId}
-              className="rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-5 space-y-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-xs"
+              className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-5 space-y-3 hover:border-[#c25e2e]/50 dark:hover:border-[#d97757]/50 transition-colors shadow-xs"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold uppercase">
+                  <span className="text-[10px] font-mono text-[#c25e2e] dark:text-[#d97757] font-semibold uppercase">
                     Session #{session.sessionId.slice(-8)}
                   </span>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                  <h3 className="font-serif text-sm font-semibold text-[#1f1e1d] dark:text-[#ede8e1] mt-0.5">
                     {session.userPrompt}
                   </h3>
                 </div>
@@ -128,7 +128,7 @@ ${session.rounds.round4_synthesis.synthesisText}
                       setActiveSession(session);
                       setActiveView('chat');
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 font-medium cursor-pointer transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] text-white text-xs font-medium cursor-pointer transition-colors shadow-2xs"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Open in Chat</span>
@@ -136,7 +136,7 @@ ${session.rounds.round4_synthesis.synthesisText}
 
                   <button
                     onClick={() => handleExportMarkdown(session)}
-                    className="p-1.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                    className="p-1.5 rounded-lg text-[#8c857b] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1] hover:bg-[#f5f0e6] dark:hover:bg-[#2b2825] cursor-pointer transition-colors"
                     title="Export Markdown"
                   >
                     <Download className="w-4 h-4" />
@@ -148,7 +148,7 @@ ${session.rounds.round4_synthesis.synthesisText}
                         deleteSession(session.sessionId);
                       }
                     }}
-                    className="p-1.5 rounded text-slate-400 hover:text-rose-600 cursor-pointer"
+                    className="p-1.5 rounded-lg text-[#8c857b] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
                     title="Delete Conversation"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -157,19 +157,19 @@ ${session.rounds.round4_synthesis.synthesisText}
               </div>
 
               {/* Preview of synthesis */}
-              <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+              <p className="text-xs text-[#615c54] dark:text-[#9e988e] line-clamp-2 leading-relaxed">
                 {session.rounds.round4_synthesis.synthesisText || 'No synthesis recorded.'}
               </p>
 
               {/* Participating models tags & metadata */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2">
+              <div className="pt-3 border-t border-[#f0ebd5] dark:border-[#2d2a27] flex flex-wrap items-center justify-between text-[11px] text-[#8c857b] gap-2">
                 <div className="flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-slate-400" />
+                  <Cpu className="w-3.5 h-3.5 text-[#c25e2e] dark:text-[#d97757]" />
                   <span>Participating:</span>
                   {session.rounds.round1_independent.map((r) => (
                     <span
                       key={r.modelId}
-                      className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[10px]"
+                      className="px-1.5 py-0.2 rounded font-mono text-[10px] bg-[#f5f0e6] dark:bg-[#2b2825] text-[#5e584f] dark:text-[#9e978b] border border-[#e5ded0] dark:border-[#38342e]"
                     >
                       {r.modelName}
                     </span>

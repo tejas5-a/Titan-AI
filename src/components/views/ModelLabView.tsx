@@ -87,35 +87,35 @@ export function ModelLabView() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+      {/* Claude Style Header */}
+      <div className="flex items-center gap-3 pb-4 border-b border-[#e8e2d8] dark:border-[#33302c]">
+        <div className="p-2.5 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#c25e2e] dark:text-[#d97757] border border-[#e5ded0] dark:border-[#38342e]">
           <FlaskConical className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Model Laboratory</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <h2 className="font-serif text-xl font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">Model Laboratory</h2>
+          <p className="text-xs text-[#736e65] dark:text-[#9e978b]">
             Head-to-head empirical comparison of distinct models on identical prompts. Measure real latency and token throughput.
           </p>
         </div>
       </div>
 
       {/* Lab Form */}
-      <form onSubmit={runBenchmark} className="rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-xs">
+      <form onSubmit={runBenchmark} className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-5 space-y-4 shadow-xs">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[#8a8377] dark:text-[#8f887f] mb-1.5">
             Shared Benchmark Prompt
           </label>
           <textarea
             rows={2}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="w-full text-xs rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+            className="w-full text-xs rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] p-3 text-[#1f1e1d] dark:text-[#ede8e1] focus:outline-hidden focus:ring-2 focus:ring-[#c25e2e]/30 focus:border-[#c25e2e]"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[#8a8377] dark:text-[#8f887f] mb-1.5">
             Select Models to Compare ({selectedModelIds.length} selected)
           </label>
           <div className="flex flex-wrap gap-2">
@@ -126,10 +126,10 @@ export function ModelLabView() {
                   type="button"
                   key={m.id}
                   onClick={() => toggleLabModel(m.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500/20'
-                      : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700'
+                      ? 'bg-[#fbeee6] dark:bg-[#2d221c] border-[#c25e2e] dark:border-[#d97757] text-[#b04f24] dark:text-[#e08967] ring-1 ring-[#c25e2e]/20 shadow-2xs'
+                      : 'bg-[#fbfaf8] dark:bg-[#1a1917] border-[#ded7cb] dark:border-[#383530] text-[#736e65] dark:text-[#9e978b] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1]'
                   }`}
                 >
                   {m.name} ({m.provider})
@@ -143,7 +143,7 @@ export function ModelLabView() {
           <button
             type="submit"
             disabled={isRunning || !prompt.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-medium text-xs transition-colors cursor-pointer shadow-xs"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] disabled:opacity-40 text-white font-medium text-xs transition-colors cursor-pointer shadow-xs"
           >
             {isRunning ? (
               <>
@@ -152,7 +152,7 @@ export function ModelLabView() {
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Execute Laboratory Comparison</span>
               </>
             )}
@@ -163,7 +163,7 @@ export function ModelLabView() {
       {/* Comparison Grid Results */}
       {labResults.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
+          <div className="flex items-center justify-between text-xs text-[#8c857b] font-mono">
             <span>Side-by-Side Empirical Results</span>
             <span>Measured live from server</span>
           </div>
@@ -176,13 +176,13 @@ export function ModelLabView() {
             {labResults.map((res) => (
               <div
                 key={res.modelId}
-                className="rounded-2xl bg-white dark:bg-[#131620] border border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between space-y-3 shadow-xs"
+                className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-5 flex flex-col justify-between space-y-3 shadow-xs"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#f0ebd5] dark:border-[#2d2a27] text-xs">
                     <div>
-                      <h4 className="font-bold text-slate-900 dark:text-slate-100">{res.modelName}</h4>
-                      <span className="text-[10px] uppercase font-mono text-slate-400">{res.provider}</span>
+                      <h4 className="font-serif font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">{res.modelName}</h4>
+                      <span className="text-[10px] uppercase font-mono text-[#8c857b]">{res.provider}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       {res.isSimulated && <StatusBadge status="simulated" label="Sim" />}
@@ -190,7 +190,7 @@ export function ModelLabView() {
                     </div>
                   </div>
 
-                  <div className="max-h-96 overflow-y-auto text-xs text-slate-700 dark:text-slate-300 custom-scrollbar">
+                  <div className="max-h-96 overflow-y-auto text-xs text-[#2e2c29] dark:text-[#ded8ce] custom-scrollbar">
                     {res.text ? (
                       <MarkdownView content={res.text} />
                     ) : (
@@ -199,9 +199,9 @@ export function ModelLabView() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <div className="pt-3 border-t border-[#f0ebd5] dark:border-[#2d2a27] flex items-center justify-between text-[11px] font-mono text-[#8c857b]">
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                    <Clock className="w-3.5 h-3.5 text-[#c25e2e] dark:text-[#d97757]" />
                     {res.latencyMs}ms
                   </span>
                   <span>Tokens: {res.usage?.totalTokens || 0}</span>

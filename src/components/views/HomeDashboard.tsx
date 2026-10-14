@@ -56,25 +56,25 @@ export function HomeDashboard() {
       id: 'debate',
       title: 'AI Debate Studio',
       desc: 'Stage structured debates on controversial architectures, algorithms, or strategies.',
-      icon: <Swords className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
+      icon: <Swords className="w-5 h-5 text-[#c25e2e] dark:text-[#d97757]" />,
     },
     {
       id: 'research',
       title: 'Deep Research',
       desc: 'Conduct parallel multi-step investigative briefings with source evidence.',
-      icon: <Compass className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
+      icon: <Compass className="w-5 h-5 text-[#c25e2e] dark:text-[#d97757]" />,
     },
     {
       id: 'coding',
       title: 'AI Coding Studio',
       desc: 'Multi-model collaborative software engineering, patch diffs, and reviews.',
-      icon: <Code2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
+      icon: <Code2 className="w-5 h-5 text-[#c25e2e] dark:text-[#d97757]" />,
     },
     {
       id: 'vision',
       title: 'Vision Studio',
       desc: 'Cross-examine user images and visual artifacts with multimodal perception.',
-      icon: <Eye className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
+      icon: <Eye className="w-5 h-5 text-[#c25e2e] dark:text-[#d97757]" />,
     },
   ];
 
