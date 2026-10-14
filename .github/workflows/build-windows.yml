@@ -1,0 +1,49 @@
+name: Build Windows 7 x86 (32-bit) Desktop App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build & Package Windows 7 32-bit (ia32) Installers
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (LTS 18)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Bundle Desktop Shell & Backend
+        run: npm run build:electron
+
+      - name: Package Windows 7 x86 Installers (NSIS & Portable)
+        run: npm run package:win32
+        env:
+          ELECTRON_CACHE: ${{ runner.temp }}/electron-cache
+          ELECTRON_BUILDER_CACHE: ${{ runner.temp }}/electron-builder-cache
+
+      - name: Upload Windows 7 x86 Installers Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TITAN-AI-Windows-7-x86-Installers
+          path: dist-electron-build/*.exe
+          if-no-files-found: error
+          retention-days: 30

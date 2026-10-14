@@ -1,9 +1,37 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --claude-bg: #faf8f5;
+    --claude-surface: #ffffff;
+    --claude-sidebar: #f5f2eb;
+    --claude-border: #e8e2d8;
+    --claude-text: #1f1e1d;
+    --claude-text-muted: #6e6962;
+    --claude-accent: #c25e2e;
+    --claude-accent-hover: #b05225;
+  }
+
+  .dark {
+    --claude-bg: #181716;
+    --claude-surface: #22201e;
+    --claude-sidebar: #1d1c1a;
+    --claude-border: #33302c;
+    --claude-text: #ede8e1;
+    --claude-text-muted: #9c968d;
+    --claude-accent: #d97757;
+    --claude-accent-hover: #e08364;
+  }
+
   body {
-    @apply antialiased text-slate-900 bg-slate-50 dark:bg-[#0c0e14] dark:text-slate-100;
+    @apply antialiased;
+    background-color: var(--claude-bg);
+    color: var(--claude-text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .font-serif {
+    font-family: 'Lora', Georgia, Cambria, 'Times New Roman', serif;
   }
 
   code, pre {
@@ -11,7 +39,7 @@
   }
 }
 
-/* Custom minimal scrollbar */
+/* Claude-style warm minimal scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -22,14 +50,14 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: rgba(180, 170, 155, 0.4);
   border-radius: 4px;
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.4);
+  background: rgba(100, 95, 88, 0.5);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.7);
+  background: rgba(180, 170, 155, 0.7);
 }

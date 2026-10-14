@@ -21,10 +21,9 @@ import {
   Moon,
   Sun,
   ShieldCheck,
-  CheckCircle2,
   Cpu,
-  Layers,
   Sparkles,
+  Search,
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -47,8 +46,6 @@ export function AppShell({ children }: AppShellProps) {
     setActiveProject,
   } = useApp();
 
-  const [showModelModal, setShowModelModal] = useState(false);
-
   const navItems: Array<{ id: NavigationDestination; label: string; icon: React.ReactNode; badge?: string }> = [
     { id: 'home', label: 'Home', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'chat', label: 'Collective Chat', icon: <MessagesSquare className="w-4 h-4" /> },
@@ -59,7 +56,7 @@ export function AppShell({ children }: AppShellProps) {
     { id: 'knowledge', label: 'Knowledge Base', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'agents', label: 'Agent Workspace', icon: <Users2 className="w-4 h-4" /> },
     { id: 'projects', label: 'Projects', icon: <FolderGit2 className="w-4 h-4" />, badge: `${projects.length}` },
-    { id: 'history', label: 'Conversation History', icon: <History className="w-4 h-4" /> },
+    { id: 'history', label: 'History', icon: <History className="w-4 h-4" /> },
     { id: 'laboratory', label: 'Model Laboratory', icon: <FlaskConical className="w-4 h-4" /> },
     { id: 'usage', label: 'Usage & Costs', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <SettingsIcon className="w-4 h-4" /> },
@@ -73,68 +70,69 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#0c0e14] text-slate-900 dark:text-slate-100 font-sans antialiased">
-      {/* LEFT NAVIGATION SIDEBAR */}
+    <div className="flex h-screen w-screen overflow-hidden bg-[#faf8f5] dark:bg-[#181716] text-[#1f1e1d] dark:text-[#ede8e1] font-sans antialiased">
+      {/* CLAUDE STYLE SIDEBAR */}
       <aside
-        className={`flex flex-col border-r border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#11131a] transition-all duration-200 select-none z-30 ${
+        className={`flex flex-col border-r border-[#e8e2d8] dark:border-[#33302c] bg-[#f5f2eb] dark:bg-[#1d1c1a] transition-all duration-200 select-none z-30 ${
           sidebarCollapsed ? 'w-16' : 'w-64'
         }`}
       >
         {/* Brand Header */}
-        <div className="flex items-center justify-between px-3.5 py-4 border-b border-slate-100 dark:border-slate-800/70 h-16">
+        <div className="flex items-center justify-between px-3.5 py-4 border-b border-[#e8e2d8]/60 dark:border-[#33302c]/70 h-16">
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs flex-shrink-0">
+              {/* Claude style terracotta emblem */}
+              <div className="w-7 h-7 rounded-lg bg-[#c25e2e] dark:bg-[#d97757] flex items-center justify-center text-white font-serif font-bold text-sm shadow-xs flex-shrink-0">
                 T
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold tracking-tight text-slate-900 dark:text-white text-base">
+                  <span className="font-serif font-semibold tracking-tight text-[#1f1e1d] dark:text-[#ede8e1] text-base">
                     TITAN AI
                   </span>
-                  <span className="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
-                    Pro
+                  <span className="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-[#ebe4d8] dark:bg-[#2b2824] text-[#c25e2e] dark:text-[#d97757] font-semibold border border-[#ded5c7] dark:border-[#3d3831]">
+                    Collective
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
+                <p className="text-[11px] text-[#787268] dark:text-[#9c968d] truncate">
                   Intelligence, Working Together.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs mx-auto">
+            <div className="w-7 h-7 rounded-lg bg-[#c25e2e] dark:bg-[#d97757] flex items-center justify-center text-white font-serif font-bold text-sm shadow-xs mx-auto">
               T
             </div>
           )}
 
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+            className="p-1 rounded-md text-[#787268] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1] hover:bg-[#e8e2d8] dark:hover:bg-[#282623] transition-colors cursor-pointer"
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Primary Action: New Collective Chat */}
+        {/* Primary Action: Claude style Start New Chat */}
         <div className="p-3">
           <button
             onClick={newChat}
-            className={`w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs transition-colors py-2.5 px-3 shadow-xs cursor-pointer ${
+            className={`w-full flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-[#242220] hover:bg-[#ede7dc] dark:hover:bg-[#2d2a27] text-[#1f1e1d] dark:text-[#ede8e1] border border-[#e2dcd2] dark:border-[#383530] font-medium text-xs transition-all py-2.5 px-3 shadow-xs cursor-pointer ${
               sidebarCollapsed ? 'px-0' : ''
             }`}
-            title="Start New Collective Collaboration"
+            title="Start New Collective Chat"
           >
-            <Plus className="w-4 h-4" />
-            {!sidebarCollapsed && <span>New Collective Chat</span>}
+            <Plus className="w-4 h-4 text-[#c25e2e] dark:text-[#d97757]" />
+            {!sidebarCollapsed && <span className="font-medium">New Collective Chat</span>}
           </button>
         </div>
 
         {/* Active Project Selector */}
         {!sidebarCollapsed && (
           <div className="px-3 pb-2">
-            <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 px-1 pb-1 font-medium">
-              <span>ACTIVE PROJECT</span>
+            <div className="text-[10px] font-semibold tracking-wider uppercase text-[#8c857b] dark:text-[#8f887f] px-1 pb-1">
+              Active Project
             </div>
             <select
               value={activeProject?.id || ''}
@@ -142,9 +140,9 @@ export function AppShell({ children }: AppShellProps) {
                 const found = projects.find((p) => p.id === e.target.value);
                 setActiveProject(found || null);
               }}
-              className="w-full text-xs rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 truncate cursor-pointer"
+              className="w-full text-xs rounded-lg bg-white dark:bg-[#242220] border border-[#e2dcd2] dark:border-[#383530] text-[#2e2c29] dark:text-[#ded8ce] px-2 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-[#c25e2e] truncate cursor-pointer"
             >
-              <option value="">No Project (Global Workspace)</option>
+              <option value="">Global Workspace (Shared)</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -162,14 +160,14 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 key={item.id}
                 onClick={() => setActiveView(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all group relative cursor-pointer ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all group relative cursor-pointer ${
                   isActive
-                    ? 'bg-indigo-50/80 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-[#eae3d6] dark:bg-[#2a2825] text-[#1f1e1d] dark:text-[#ede8e1] font-semibold shadow-2xs'
+                    : 'text-[#615c54] dark:text-[#9e988e] hover:bg-[#ede7dc]/60 dark:hover:bg-[#242220] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1]'
                 } ${sidebarCollapsed ? 'justify-center px-0' : ''}`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
-                <span className={isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}>
+                <span className={isActive ? 'text-[#c25e2e] dark:text-[#d97757]' : 'text-[#878074] dark:text-[#787268] group-hover:text-[#1f1e1d] dark:group-hover:text-[#ede8e1]'}>
                   {item.icon}
                 </span>
 
@@ -178,14 +176,13 @@ export function AppShell({ children }: AppShellProps) {
                 )}
 
                 {!sidebarCollapsed && item.badge && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#ded7cb] dark:bg-[#33302b] text-[#524d45] dark:text-[#aba499]">
                     {item.badge}
                   </span>
                 )}
 
-                {/* Floating tooltip when sidebar is collapsed */}
                 {sidebarCollapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 rounded bg-slate-900 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-md">
+                  <div className="absolute left-full ml-2 px-2.5 py-1 rounded-md bg-[#22201e] text-[#ede8e1] text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-md">
                     {item.label}
                   </div>
                 )}
@@ -195,45 +192,45 @@ export function AppShell({ children }: AppShellProps) {
         </nav>
 
         {/* Bottom Status Panel */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800/70 bg-slate-50/50 dark:bg-[#0f1118]">
+        <div className="p-3 border-t border-[#e8e2d8]/80 dark:border-[#33302c]/70 bg-[#ede7dc]/40 dark:bg-[#191816]">
           {!sidebarCollapsed ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-[#5e584f] dark:text-[#a19b90]">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{enabledModels.length} Models Active</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="font-medium">{enabledModels.length} Models Active</span>
                 </span>
                 <button
                   onClick={() => setActiveView('settings')}
-                  className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="text-[11px] text-[#c25e2e] dark:text-[#d97757] hover:underline"
                 >
                   Manage
                 </button>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+              <div className="flex items-center justify-between text-[11px] text-[#857e74] dark:text-[#7d776e]">
                 <span>{connectedProviders.length} Providers Ready</span>
-                <span className="text-[10px] font-mono">{settings.allowPaidUsage ? 'PAID ON' : 'FREE-ONLY'}</span>
+                <span className="font-mono text-[10px]">{settings.allowPaidUsage ? 'PAID ON' : 'FREE ONLY'}</span>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" title={`${enabledModels.length} Models active`} />
+            <div className="flex flex-col items-center">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" title={`${enabledModels.length} models active`} />
             </div>
           )}
         </div>
       </aside>
 
       {/* MAIN VIEWPORT */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Top Header */}
-        <header className="h-14 border-b border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-[#11131a]/80 backdrop-blur-sm flex items-center justify-between px-6 z-20 flex-shrink-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#faf8f5] dark:bg-[#181716]">
+        {/* Top Header - Claude style minimal */}
+        <header className="h-14 border-b border-[#e8e2d8] dark:border-[#33302c] bg-[#faf8f5]/90 dark:bg-[#181716]/90 backdrop-blur-xs flex items-center justify-between px-6 z-20 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100 capitalize">
+            <h1 className="font-serif text-base font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
               {navItems.find((n) => n.id === activeView)?.label || 'TITAN AI'}
             </h1>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">
+            <span className="text-[#c4bdb2] dark:text-[#4d4841]">/</span>
+            <span className="text-xs text-[#787268] dark:text-[#9e988e] hidden sm:inline">
               {activeProject ? activeProject.name : 'Shared Context'}
             </span>
           </div>
@@ -242,27 +239,22 @@ export function AppShell({ children }: AppShellProps) {
             {/* Quick Model Selector Pill */}
             <button
               onClick={() => setActiveView('settings')}
-              className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300 hover:border-indigo-500/50 transition-colors cursor-pointer"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#ded7cb] dark:border-[#383530] bg-white dark:bg-[#22201e] text-xs text-[#2e2c29] dark:text-[#ded8ce] hover:border-[#c25e2e] dark:hover:border-[#d97757] transition-colors cursor-pointer shadow-2xs"
             >
-              <Cpu className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <Cpu className="w-3.5 h-3.5 text-[#c25e2e] dark:text-[#d97757]" />
               <span>
-                <strong className="text-indigo-600 dark:text-indigo-400">{enabledModels.length}</strong> of{' '}
+                <strong className="text-[#c25e2e] dark:text-[#d97757]">{enabledModels.length}</strong> of{' '}
                 {models.length} models
               </span>
             </button>
 
             {/* Paid API Usage Shield */}
             <div
-              className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs border ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${
                 settings.allowPaidUsage
-                  ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800'
-                  : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                  ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-900'
+                  : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900'
               }`}
-              title={
-                settings.allowPaidUsage
-                  ? 'Paid API Usage: Enabled (Can incur cloud API charges)'
-                  : 'Paid API Usage: Disabled (Zero surprise cloud charges policy)'
-              }
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span className="text-[11px] font-medium hidden sm:inline">
@@ -273,7 +265,7 @@ export function AppShell({ children }: AppShellProps) {
             {/* Dark/Light Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full border border-[#ded7cb] dark:border-[#383530] text-[#6e685e] dark:text-[#9e988e] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1] hover:bg-[#ede7dc] dark:hover:bg-[#262421] transition-colors cursor-pointer"
               title={`Switch to ${settings.theme === 'dark' ? 'Light' : 'Dark'} theme`}
             >
               {settings.theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -282,7 +274,7 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 min-h-0 overflow-y-auto bg-slate-50/50 dark:bg-[#0c0e14]">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           {children}
         </main>
       </div>

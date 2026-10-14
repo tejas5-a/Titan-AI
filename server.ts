@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,8 +6,14 @@ import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const getDirname = () => {
+  try {
+    return path.dirname(fileURLToPath(import.meta.url));
+  } catch (_) {
+    return process.cwd();
+  }
+};
+const appDirname = getDirname();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -894,13 +899,30 @@ async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
 
   if (!isProd) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
+    const procResources = (process as any).resourcesPath || '';
+    const possibleDistPaths = [
+      path.resolve(appDirname, 'dist'),
+      path.resolve(process.cwd(), 'dist'),
+      path.resolve(procResources, 'dist'),
+      path.resolve(procResources, 'app.asar/dist'),
+    ];
+    let distPath = possibleDistPaths[0];
+    for (const p of possibleDistPaths) {
+      try {
+        if (p && path.isAbsolute(p)) {
+          distPath = p;
+          break;
+        }
+      } catch (_) {}
+    }
+
     app.use(express.static(distPath));
     app.get('*', (req: Request, res: Response) => {
       res.sendFile(path.join(distPath, 'index.html'));
