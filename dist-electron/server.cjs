@@ -1,3 +1,4 @@
+if(typeof globalThis.ReadableStream==='undefined'){try{const s=require('stream/web');if(s){if(s.ReadableStream)globalThis.ReadableStream=s.ReadableStream;if(s.WritableStream)globalThis.WritableStream=s.WritableStream;if(s.TransformStream)globalThis.TransformStream=s.TransformStream;if(s.ByteLengthQueuingStrategy)globalThis.ByteLengthQueuingStrategy=s.ByteLengthQueuingStrategy;if(s.CountQueuingStrategy)globalThis.CountQueuingStrategy=s.CountQueuingStrategy;}}catch(e){}}
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -69212,6 +69213,19 @@ function getApiKeyFromEnv() {
 
 // server.ts
 var import_meta = {};
+if (typeof globalThis.ReadableStream === "undefined") {
+  try {
+    const streamWeb = require("stream/web");
+    if (streamWeb) {
+      if (streamWeb.ReadableStream) globalThis.ReadableStream = streamWeb.ReadableStream;
+      if (streamWeb.WritableStream) globalThis.WritableStream = streamWeb.WritableStream;
+      if (streamWeb.TransformStream) globalThis.TransformStream = streamWeb.TransformStream;
+      if (streamWeb.ByteLengthQueuingStrategy) globalThis.ByteLengthQueuingStrategy = streamWeb.ByteLengthQueuingStrategy;
+      if (streamWeb.CountQueuingStrategy) globalThis.CountQueuingStrategy = streamWeb.CountQueuingStrategy;
+    }
+  } catch (_e) {
+  }
+}
 import_dotenv.default.config();
 var getDirname = () => {
   try {

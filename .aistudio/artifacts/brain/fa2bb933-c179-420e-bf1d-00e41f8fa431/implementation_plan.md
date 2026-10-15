@@ -1,25 +1,45 @@
-# Fix GitHub Actions Packaging & Publishing Configuration Plan
+# Implementation Plan - Windows 7 32-bit Polyfill & Desktop Startup Fix
 
-## Root Cause
-When `electron-builder` builds the Windows 32-bit installers (`nsis` and `portable`) on GitHub Actions, it checks whether it is running in a CI/repository environment. By default, `electron-builder` attempts to publish release artifacts to GitHub Releases unless explicit publishing options are provided. Because no `GH_TOKEN` or GitHub Personal Access Token was set in the environment, `electron-builder` failed during the post-package publish phase with:
-`GitHub Personal Access Token is not set, neither programmatically, nor using env "GH_TOKEN"`.
+## Problem Overview
+When running TITAN AI on Windows 7 32-bit (ia32), the backend server fails to start with:
+`ReferenceError: ReadableStream is not defined at Object.<anonymous> (server.cjs:62355:15)`
 
-## Resolutions Applied
-1. **Explicitly Disabled Publishing in `package.json`**:
-   Updated the `"package:win32"` script:
-   ```json
-   "package:win32": "electron-builder --win --ia32 --config electron-builder.json --publish never"
-   ```
-2. **Explicitly Disabled Publishing in `electron-builder.json`**:
-   Added `"publish": null` to `electron-builder.json` so `electron-builder` does not attempt publishing regardless of execution flags or repository environment variables.
-3. **Artifact Upload Verification**:
-   Verified that `.github/workflows/build-windows.yml` correctly collects generated installers from `dist-electron-build/`:
-   - `TITAN AI-Setup-1.0.0-ia32.exe`
-   - `TITAN AI-1.0.0-Portable-ia32.exe`
-   using `actions/upload-artifact@v4` as build artifacts without attempting a GitHub release.
+This occurs because Electron 22 bundles Node.js v16.x, which includes Web Streams API in `stream/web`, but does not attach `ReadableStream`, `WritableStream`, or `TransformStream` to `globalThis` by default. Third-party packages (such as `@google/genai` or web fetch utilities) expect `ReadableStream` to be present globally.
 
-## Verification
-- Verified web build (`npm run build`).
-- Verified Electron main & preload bundling (`npm run build:electron`).
-- Verified TypeScript compilation (`npm run lint`).
-- Verified applet compilation (`compile_applet`).
+## Solution Architecture
+
+### 1. Source Code Polyfill Integration
+Update `server.ts` and `electron/main.ts` so that when `dist-electron/server.cjs` is bundled by `esbuild`, a standard polyfill runs prior to importing any dependencies:
+```ts
+if (typeof globalThis.ReadableStream === 'undefined') {
+  try {
+    const streamWeb = require('node:stream/web') || require('stream/web');
+    if (streamWeb) {
+      if (streamWeb.ReadableStream) globalThis.ReadableStream = streamWeb.ReadableStream;
+      if (streamWeb.WritableStream) globalThis.WritableStream = streamWeb.WritableStream;
+      if (streamWeb.TransformStream) globalThis.TransformStream = streamWeb.TransformStream;
+      if (streamWeb.ByteLengthQueuingStrategy) globalThis.ByteLengthQueuingStrategy = streamWeb.ByteLengthQueuingStrategy;
+      if (streamWeb.CountQueuingStrategy) globalThis.CountQueuingStrategy = streamWeb.CountQueuingStrategy;
+    }
+  } catch (_e) {
+    // Fallback if needed
+  }
+}
+```
+
+Add `--banner:js` to `esbuild` build script in `package.json` to guarantee the polyfill is placed at line 1 of `dist-electron/server.cjs` before any external module scope evaluates.
+
+### 2. Windows 7 Compatibility & Verification
+- **Windows 7 Support Assessment:** Electron 22.3.27 is the last Electron release family supporting Windows 7/8/8.1. Combined with 32-bit (`ia32`) compilation, the app is fully compatible with Windows 7 32-bit once the `ReadableStream` global is defined.
+- **Provide Step-by-Step CMD Guide:** Step-by-step instructions for extracting `%LOCALAPPDATA%\Programs\TITAN AI\resources\app.asar`, inserting the polyfill line into `server.cjs`, and repacking `app.asar`.
+- **Version Verification Guide:** Commands and steps to check the bundled Electron/Node.js version.
+
+## Proposed Changes
+
+### Repository Code
+- Modify `server.ts` (top of file)
+- Modify `package.json` (`build:electron` script with banner or explicit preamble)
+- Verify `npm run build:electron` and `compile_applet`
+
+### User Guide
+- Step-by-step Windows 7 CMD commands to patch an already installed desktop build without recompiling from source.
