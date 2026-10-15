@@ -25,10 +25,24 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var import_electron = require("electron");
 var import_path = __toESM(require("path"), 1);
 var import_http = __toESM(require("http"), 1);
+var import_net = __toESM(require("net"), 1);
+var import_fs = __toESM(require("fs"), 1);
 var import_child_process = require("child_process");
 var mainWindow = null;
 var serverProcess = null;
-var BACKEND_PORT = process.env.PORT || 3e3;
+var DEFAULT_PORT = process.env.PORT || 3e3;
+function findAvailablePort(startPort) {
+  return new Promise((resolve) => {
+    const server = import_net.default.createServer();
+    server.listen(startPort, "127.0.0.1", () => {
+      const port = server.address().port;
+      server.close(() => resolve(port));
+    });
+    server.on("error", () => {
+      resolve(findAvailablePort(startPort + 1));
+    });
+  });
+}
 async function waitForBackend(port, timeoutMs = 2e4) {
   const startTime = Date.now();
   const url = `http://127.0.0.1:${port}/api/health`;
@@ -52,39 +66,91 @@ async function waitForBackend(port, timeoutMs = 2e4) {
   return false;
 }
 function startBackendServer() {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    var _a, _b;
     const isDev = !import_electron.app.isPackaged;
-    const serverPath = isDev ? import_path.default.join(__dirname, "../server.ts") : import_path.default.join(process.resourcesPath || "", "server.cjs");
+    const requestedPort = parseInt(String(DEFAULT_PORT), 10) || 3e3;
+    const targetPort = await findAvailablePort(requestedPort);
+    let serverScript = isDev ? import_path.default.join(__dirname, "../server.ts") : import_path.default.join(__dirname, "server.cjs");
+    if (!isDev) {
+      const possiblePaths = [
+        import_path.default.join(__dirname, "server.cjs"),
+        import_path.default.join(__dirname, "../dist-electron/server.cjs"),
+        import_path.default.join(process.resourcesPath || "", "app.asar/dist-electron/server.cjs"),
+        import_path.default.join(process.resourcesPath || "", "app/dist-electron/server.cjs")
+      ];
+      for (const p of possiblePaths) {
+        if (p && import_fs.default.existsSync(p)) {
+          serverScript = p;
+          break;
+        }
+      }
+    }
     const env = {
       ...process.env,
-      PORT: String(BACKEND_PORT),
+      PORT: String(targetPort),
       NODE_ENV: isDev ? "development" : "production",
-      ELECTRON_RUN: "true"
+      ELECTRON_RUN: "true",
+      ELECTRON_RUN_AS_NODE: "1"
     };
     if (isDev) {
-      waitForBackend(BACKEND_PORT, 4e3).then((ready) => {
-        if (ready) {
-          resolve(Number(BACKEND_PORT));
-        } else {
-          try {
-            serverProcess = (0, import_child_process.fork)(serverPath, [], { env, execArgv: ["--import", "tsx"] });
-            waitForBackend(BACKEND_PORT).then((ok) => {
-              if (ok) resolve(Number(BACKEND_PORT));
-              else reject(new Error("Backend server failed to respond to health check."));
-            });
-          } catch (e) {
-            reject(e);
-          }
-        }
-      });
+      const ready = await waitForBackend(targetPort, 2e3);
+      if (ready) {
+        resolve(targetPort);
+        return;
+      }
+      try {
+        serverProcess = (0, import_child_process.fork)(serverScript, [], {
+          env: { ...env, ELECTRON_RUN_AS_NODE: void 0 },
+          execArgv: ["--import", "tsx"]
+        });
+        const ok = await waitForBackend(targetPort);
+        if (ok) resolve(targetPort);
+        else reject(new Error(`Backend server failed to respond on port ${targetPort}.`));
+      } catch (e) {
+        reject(e);
+      }
     } else {
       try {
-        const prodServerScript = import_path.default.join(__dirname, "server.cjs");
-        serverProcess = (0, import_child_process.fork)(prodServerScript, [], { env });
-        waitForBackend(BACKEND_PORT).then((ok) => {
-          if (ok) resolve(Number(BACKEND_PORT));
-          else reject(new Error("TITAN AI backend failed to initialize."));
+        let processOutput = "";
+        serverProcess = (0, import_child_process.fork)(serverScript, [], {
+          env,
+          stdio: ["ignore", "pipe", "pipe", "ipc"]
         });
+        (_a = serverProcess.stdout) == null ? void 0 : _a.on("data", (data) => {
+          processOutput += data.toString();
+        });
+        (_b = serverProcess.stderr) == null ? void 0 : _b.on("data", (data) => {
+          processOutput += data.toString();
+        });
+        let hasExited = false;
+        serverProcess.on("exit", (code, signal) => {
+          hasExited = true;
+          if (!serverProcess) return;
+          reject(
+            new Error(
+              `Backend server process exited prematurely with code ${code} (signal: ${signal}).
+Logs: ${processOutput || "None"}`
+            )
+          );
+        });
+        serverProcess.on("error", (err) => {
+          hasExited = true;
+          reject(err);
+        });
+        const ok = await waitForBackend(targetPort);
+        if (ok) {
+          if (!hasExited) resolve(targetPort);
+        } else {
+          if (!hasExited) {
+            reject(
+              new Error(
+                `Backend server failed to respond on port ${targetPort} within timeout.
+Log output: ${processOutput || "None"}`
+              )
+            );
+          }
+        }
       } catch (e) {
         reject(e);
       }
@@ -121,23 +187,24 @@ function createMainWindow(port) {
     mainWindow = null;
   });
 }
+var activePort = parseInt(String(DEFAULT_PORT), 10) || 3e3;
 import_electron.app.whenReady().then(async () => {
   try {
-    const port = await startBackendServer();
-    createMainWindow(port);
+    activePort = await startBackendServer();
+    createMainWindow(activePort);
   } catch (err) {
     import_electron.dialog.showErrorBox(
       "TITAN AI Startup Failure",
       `Failed to launch local collective intelligence engine:
 ${err.message || err}
 
-Please verify that port ${BACKEND_PORT} is not blocked by Windows Firewall or another application.`
+Please verify that port ${activePort} is not blocked by Windows Firewall or another application.`
     );
     import_electron.app.quit();
   }
   import_electron.app.on("activate", () => {
     if (import_electron.BrowserWindow.getAllWindows().length === 0 && mainWindow === null) {
-      createMainWindow(Number(BACKEND_PORT));
+      createMainWindow(activePort);
     }
   });
 });

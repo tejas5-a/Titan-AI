@@ -1,11 +1,27 @@
 import { app, BrowserWindow, dialog, shell } from 'electron';
 import path from 'path';
 import http from 'http';
+import net from 'net';
+import fs from 'fs';
 import { fork, ChildProcess } from 'child_process';
 
 let mainWindow: BrowserWindow | null = null;
 let serverProcess: ChildProcess | null = null;
-const BACKEND_PORT = process.env.PORT || 3000;
+const DEFAULT_PORT = process.env.PORT || 3000;
+
+// Find an available port starting from startPort
+function findAvailablePort(startPort: number): Promise<number> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.listen(startPort, '127.0.0.1', () => {
+      const port = (server.address() as net.AddressInfo).port;
+      server.close(() => resolve(port));
+    });
+    server.on('error', () => {
+      resolve(findAvailablePort(startPort + 1));
+    });
+  });
+}
 
 // Poll backend health until ready
 async function waitForBackend(port: number | string, timeoutMs = 20000): Promise<boolean> {
@@ -35,45 +51,102 @@ async function waitForBackend(port: number | string, timeoutMs = 20000): Promise
 
 // Start backend Express server
 function startBackendServer(): Promise<number> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const isDev = !app.isPackaged;
-    const serverPath = isDev
+    const requestedPort = parseInt(String(DEFAULT_PORT), 10) || 3000;
+    const targetPort = await findAvailablePort(requestedPort);
+
+    let serverScript = isDev
       ? path.join(__dirname, '../server.ts')
-      : path.join((process as any).resourcesPath || '', 'server.cjs');
+      : path.join(__dirname, 'server.cjs');
+
+    if (!isDev) {
+      const possiblePaths = [
+        path.join(__dirname, 'server.cjs'),
+        path.join(__dirname, '../dist-electron/server.cjs'),
+        path.join((process as any).resourcesPath || '', 'app.asar/dist-electron/server.cjs'),
+        path.join((process as any).resourcesPath || '', 'app/dist-electron/server.cjs'),
+      ];
+      for (const p of possiblePaths) {
+        if (p && fs.existsSync(p)) {
+          serverScript = p;
+          break;
+        }
+      }
+    }
 
     const env = {
       ...process.env,
-      PORT: String(BACKEND_PORT),
+      PORT: String(targetPort),
       NODE_ENV: isDev ? 'development' : 'production',
       ELECTRON_RUN: 'true',
+      ELECTRON_RUN_AS_NODE: '1',
     };
 
     if (isDev) {
-      // In dev mode, use tsx directly or connect to active dev server
-      waitForBackend(BACKEND_PORT, 4000).then((ready) => {
-        if (ready) {
-          resolve(Number(BACKEND_PORT));
+      // In dev mode, check if server is already running or fork with tsx
+      const ready = await waitForBackend(targetPort, 2000);
+      if (ready) {
+        resolve(targetPort);
+        return;
+      }
+
+      try {
+        serverProcess = fork(serverScript, [], {
+          env: { ...env, ELECTRON_RUN_AS_NODE: undefined },
+          execArgv: ['--import', 'tsx'],
+        });
+        const ok = await waitForBackend(targetPort);
+        if (ok) resolve(targetPort);
+        else reject(new Error(`Backend server failed to respond on port ${targetPort}.`));
+      } catch (e) {
+        reject(e);
+      }
+    } else {
+      // In packaged production, spawn bundled server script using ELECTRON_RUN_AS_NODE
+      try {
+        let processOutput = '';
+        serverProcess = fork(serverScript, [], {
+          env,
+          stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+        });
+
+        serverProcess.stdout?.on('data', (data) => {
+          processOutput += data.toString();
+        });
+
+        serverProcess.stderr?.on('data', (data) => {
+          processOutput += data.toString();
+        });
+
+        let hasExited = false;
+        serverProcess.on('exit', (code, signal) => {
+          hasExited = true;
+          if (!serverProcess) return;
+          reject(
+            new Error(
+              `Backend server process exited prematurely with code ${code} (signal: ${signal}).\nLogs: ${processOutput || 'None'}`
+            )
+          );
+        });
+
+        serverProcess.on('error', (err) => {
+          hasExited = true;
+          reject(err);
+        });
+
+        const ok = await waitForBackend(targetPort);
+        if (ok) {
+          if (!hasExited) resolve(targetPort);
         } else {
-          try {
-            serverProcess = fork(serverPath, [], { env, execArgv: ['--import', 'tsx'] });
-            waitForBackend(BACKEND_PORT).then((ok) => {
-              if (ok) resolve(Number(BACKEND_PORT));
-              else reject(new Error('Backend server failed to respond to health check.'));
-            });
-          } catch (e) {
-            reject(e);
+          if (!hasExited) {
+            reject(
+              new Error(
+                `Backend server failed to respond on port ${targetPort} within timeout.\nLog output: ${processOutput || 'None'}`
+              )
+            );
           }
         }
-      });
-    } else {
-      // In packaged production, spawn bundled server
-      try {
-        const prodServerScript = path.join(__dirname, 'server.cjs');
-        serverProcess = fork(prodServerScript, [], { env });
-        waitForBackend(BACKEND_PORT).then((ok) => {
-          if (ok) resolve(Number(BACKEND_PORT));
-          else reject(new Error('TITAN AI backend failed to initialize.'));
-        });
       } catch (e) {
         reject(e);
       }
@@ -117,22 +190,24 @@ function createMainWindow(port: number) {
   });
 }
 
+let activePort = parseInt(String(DEFAULT_PORT), 10) || 3000;
+
 // App lifecycle
 app.whenReady().then(async () => {
   try {
-    const port = await startBackendServer();
-    createMainWindow(port);
+    activePort = await startBackendServer();
+    createMainWindow(activePort);
   } catch (err: any) {
     dialog.showErrorBox(
       'TITAN AI Startup Failure',
-      `Failed to launch local collective intelligence engine:\n${err.message || err}\n\nPlease verify that port ${BACKEND_PORT} is not blocked by Windows Firewall or another application.`
+      `Failed to launch local collective intelligence engine:\n${err.message || err}\n\nPlease verify that port ${activePort} is not blocked by Windows Firewall or another application.`
     );
     app.quit();
   }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0 && mainWindow === null) {
-      createMainWindow(Number(BACKEND_PORT));
+      createMainWindow(activePort);
     }
   });
 });

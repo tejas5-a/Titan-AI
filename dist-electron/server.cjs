@@ -1291,8 +1291,8 @@ var require_node = __commonJS({
           }
           break;
         case "FILE":
-          var fs3 = require("fs");
-          stream2 = new fs3.SyncWriteStream(fd2, { autoClose: false });
+          var fs4 = require("fs");
+          stream2 = new fs4.SyncWriteStream(fd2, { autoClose: false });
           stream2._type = "fs";
           break;
         case "PIPE":
@@ -18502,7 +18502,7 @@ var require_view = __commonJS({
     "use strict";
     var debug = require_src()("express:view");
     var path3 = require("path");
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var dirname = path3.dirname;
     var basename3 = path3.basename;
     var extname = path3.extname;
@@ -18568,7 +18568,7 @@ var require_view = __commonJS({
     function tryStat(path4) {
       debug('stat "%s"', path4);
       try {
-        return fs3.statSync(path4);
+        return fs4.statSync(path4);
       } catch (e2) {
         return void 0;
       }
@@ -18923,7 +18923,7 @@ var require_types = __commonJS({
 var require_mime = __commonJS({
   "node_modules/mime/mime.js"(exports2, module2) {
     var path3 = require("path");
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     function Mime() {
       this.types = /* @__PURE__ */ Object.create(null);
       this.extensions = /* @__PURE__ */ Object.create(null);
@@ -18944,7 +18944,7 @@ var require_mime = __commonJS({
     };
     Mime.prototype.load = function(file) {
       this._loading = file;
-      var map = {}, content = fs3.readFileSync(file, "ascii"), lines = content.split(/[\r\n]+/);
+      var map = {}, content = fs4.readFileSync(file, "ascii"), lines = content.split(/[\r\n]+/);
       lines.forEach(function(line) {
         var fields = line.replace(/\s*#.*|^\s*|\s*$/g, "").split(/\s+/);
         map[fields.shift()] = fields;
@@ -19182,7 +19182,7 @@ var require_send = __commonJS({
     var escapeHtml = require_escape_html();
     var etag = require_etag();
     var fresh = require_fresh();
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var mime = require_mime();
     var ms = require_ms2();
     var onFinished = require_on_finished();
@@ -19515,7 +19515,7 @@ var require_send = __commonJS({
       var i2 = 0;
       var self2 = this;
       debug('stat "%s"', path4);
-      fs3.stat(path4, function onstat(err, stat3) {
+      fs4.stat(path4, function onstat(err, stat3) {
         if (err && err.code === "ENOENT" && !extname(path4) && path4[path4.length - 1] !== sep) {
           return next(err);
         }
@@ -19530,7 +19530,7 @@ var require_send = __commonJS({
         }
         var p = path4 + "." + self2._extensions[i2++];
         debug('stat "%s"', p);
-        fs3.stat(p, function(err2, stat3) {
+        fs4.stat(p, function(err2, stat3) {
           if (err2) return next(err2);
           if (stat3.isDirectory()) return next();
           self2.emit("file", p, stat3);
@@ -19548,7 +19548,7 @@ var require_send = __commonJS({
         }
         var p = join(path4, self2._index[i2]);
         debug('stat "%s"', p);
-        fs3.stat(p, function(err2, stat3) {
+        fs4.stat(p, function(err2, stat3) {
           if (err2) return next(err2);
           if (stat3.isDirectory()) return next();
           self2.emit("file", p, stat3);
@@ -19560,7 +19560,7 @@ var require_send = __commonJS({
     SendStream.prototype.stream = function stream(path4, options) {
       var self2 = this;
       var res = this.res;
-      var stream2 = fs3.createReadStream(path4, options);
+      var stream2 = fs4.createReadStream(path4, options);
       this.emit("stream", stream2);
       stream2.pipe(res);
       function cleanup() {
@@ -22702,7 +22702,7 @@ var require_express2 = __commonJS({
 // node_modules/dotenv/lib/main.js
 var require_main = __commonJS({
   "node_modules/dotenv/lib/main.js"(exports2, module2) {
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var path3 = require("path");
     var os = require("os");
     var crypto2 = require("crypto");
@@ -22834,7 +22834,7 @@ var require_main = __commonJS({
       if (options && options.path && options.path.length > 0) {
         if (Array.isArray(options.path)) {
           for (const filepath of options.path) {
-            if (fs3.existsSync(filepath)) {
+            if (fs4.existsSync(filepath)) {
               possibleVaultPath = filepath.endsWith(".vault") ? filepath : `${filepath}.vault`;
             }
           }
@@ -22844,7 +22844,7 @@ var require_main = __commonJS({
       } else {
         possibleVaultPath = path3.resolve(process.cwd(), ".env.vault");
       }
-      if (fs3.existsSync(possibleVaultPath)) {
+      if (fs4.existsSync(possibleVaultPath)) {
         return possibleVaultPath;
       }
       return null;
@@ -22897,7 +22897,7 @@ var require_main = __commonJS({
       const parsedAll = {};
       for (const path4 of optionPaths) {
         try {
-          const parsed = DotenvModule.parse(fs3.readFileSync(path4, { encoding }));
+          const parsed = DotenvModule.parse(fs4.readFileSync(path4, { encoding }));
           DotenvModule.populate(parsedAll, parsed, options);
         } catch (e2) {
           if (debug) {
@@ -35081,7 +35081,7 @@ var require_util2 = __commonJS({
     exports2.removeUndefinedValuesInObject = removeUndefinedValuesInObject;
     exports2.isValidFile = isValidFile;
     exports2.getWellKnownCertificateConfigFileLocation = getWellKnownCertificateConfigFileLocation;
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var os = require("os");
     var path3 = require("path");
     var WELL_KNOWN_CERTIFICATE_CONFIG_FILE = "certificate_config.json";
@@ -35169,7 +35169,7 @@ var require_util2 = __commonJS({
     }
     async function isValidFile(filePath) {
       try {
-        const stats = await fs3.promises.lstat(filePath);
+        const stats = await fs4.promises.lstat(filePath);
         return stats.isFile();
       } catch (e2) {
         return false;
@@ -37129,10 +37129,10 @@ var require_getCredentials = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getCredentials = getCredentials;
     var path3 = require("path");
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var util_1 = require("util");
     var errorWithCode_1 = require_errorWithCode();
-    var readFile = fs3.readFile ? (0, util_1.promisify)(fs3.readFile) : async () => {
+    var readFile = fs4.readFile ? (0, util_1.promisify)(fs4.readFile) : async () => {
       throw new errorWithCode_1.ErrorWithCode("use key rather than keyFile.", "MISSING_CREDENTIALS");
     };
     var ExtensionFiles;
@@ -38819,12 +38819,12 @@ var require_filesubjecttokensupplier = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.FileSubjectTokenSupplier = void 0;
     var util_1 = require("util");
-    var fs3 = require("fs");
-    var readFile = (0, util_1.promisify)(fs3.readFile ?? (() => {
+    var fs4 = require("fs");
+    var readFile = (0, util_1.promisify)(fs4.readFile ?? (() => {
     }));
-    var realpath = (0, util_1.promisify)(fs3.realpath ?? (() => {
+    var realpath = (0, util_1.promisify)(fs4.realpath ?? (() => {
     }));
-    var lstat = (0, util_1.promisify)(fs3.lstat ?? (() => {
+    var lstat = (0, util_1.promisify)(fs4.lstat ?? (() => {
     }));
     var FileSubjectTokenSupplier = class {
       filePath;
@@ -38942,7 +38942,7 @@ var require_certificatesubjecttokensupplier = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CertificateSubjectTokenSupplier = exports2.InvalidConfigurationError = exports2.CertificateSourceUnavailableError = exports2.CERTIFICATE_CONFIGURATION_ENV_VARIABLE = void 0;
     var util_1 = require_util2();
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var crypto_1 = require("crypto");
     var https2 = require("https");
     exports2.CERTIFICATE_CONFIGURATION_ENV_VARIABLE = "GOOGLE_API_CERTIFICATE_CONFIG";
@@ -39037,7 +39037,7 @@ var require_certificatesubjecttokensupplier = __commonJS({
         const configPath = this.certificateConfigPath;
         let fileContents;
         try {
-          fileContents = await fs3.promises.readFile(configPath, "utf8");
+          fileContents = await fs4.promises.readFile(configPath, "utf8");
         } catch (err) {
           throw new CertificateSourceUnavailableError(`Failed to read certificate config file at: ${configPath}`);
         }
@@ -39062,14 +39062,14 @@ var require_certificatesubjecttokensupplier = __commonJS({
       async #getKeyAndCert(certPath, keyPath) {
         let cert, key;
         try {
-          cert = await fs3.promises.readFile(certPath);
+          cert = await fs4.promises.readFile(certPath);
           new crypto_1.X509Certificate(cert);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           throw new CertificateSourceUnavailableError(`Failed to read certificate file at ${certPath}: ${message}`);
         }
         try {
-          key = await fs3.promises.readFile(keyPath);
+          key = await fs4.promises.readFile(keyPath);
           (0, crypto_1.createPrivateKey)(key);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
@@ -39088,7 +39088,7 @@ var require_certificatesubjecttokensupplier = __commonJS({
           return JSON.stringify([leafCert.raw.toString("base64")]);
         }
         try {
-          const chainPems = await fs3.promises.readFile(this.trustChainPath, "utf8");
+          const chainPems = await fs4.promises.readFile(this.trustChainPath, "utf8");
           const pemBlocks = chainPems.match(/-----BEGIN CERTIFICATE-----[^-]+-----END CERTIFICATE-----/g) ?? [];
           const chainCerts = pemBlocks.map((pem, index) => {
             try {
@@ -39791,7 +39791,7 @@ var require_pluggable_auth_handler = __commonJS({
     exports2.PluggableAuthHandler = exports2.ExecutableError = void 0;
     var executable_response_1 = require_executable_response();
     var childProcess = require("child_process");
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var ExecutableError = class extends Error {
       /**
        * The exit code returned by the executable.
@@ -39876,14 +39876,14 @@ var require_pluggable_auth_handler = __commonJS({
         }
         let filePath;
         try {
-          filePath = await fs3.promises.realpath(this.outputFile);
+          filePath = await fs4.promises.realpath(this.outputFile);
         } catch {
           return void 0;
         }
-        if (!(await fs3.promises.lstat(filePath)).isFile()) {
+        if (!(await fs4.promises.lstat(filePath)).isFile()) {
           return void 0;
         }
-        const responseString = await fs3.promises.readFile(filePath, {
+        const responseString = await fs4.promises.readFile(filePath, {
           encoding: "utf8"
         });
         if (responseString === "") {
@@ -40295,7 +40295,7 @@ var require_gdchclient = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GdchClient = exports2.GDCH_SERVICE_ACCOUNT_TYPE = void 0;
     var crypto2 = require("crypto");
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var https2 = require("https");
     var oauth2client_1 = require_oauth2client();
     var DEFAULT_LIFETIME_IN_SECONDS = 3600;
@@ -40518,7 +40518,7 @@ var require_gdchclient = __commonJS({
         const currentPath = this.caCertPath;
         this.caAgentPromise = (async () => {
           try {
-            const ca = await fs3.promises.readFile(currentPath);
+            const ca = await fs4.promises.readFile(currentPath);
             return new https2.Agent({ ca });
           } catch (err) {
             if (this.cachedCaCertPath === currentPath) {
@@ -40579,7 +40579,7 @@ var require_googleauth = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GoogleAuth = exports2.GoogleAuthExceptionMessages = void 0;
     var child_process_1 = require("child_process");
-    var fs3 = require("fs");
+    var fs4 = require("fs");
     var gaxios_1 = require_src3();
     var gcpMetadata = require_src5();
     var os = require("os");
@@ -40882,7 +40882,7 @@ var require_googleauth = __commonJS({
           return null;
         }
         const location = path3.join(configDir, "application_default_credentials.json");
-        if (!fs3.existsSync(location)) {
+        if (!fs4.existsSync(location)) {
           return null;
         }
         const client = await this._getApplicationCredentialsFromFilePath(location, options);
@@ -40899,8 +40899,8 @@ var require_googleauth = __commonJS({
           throw new Error("The file path is invalid.");
         }
         try {
-          filePath = fs3.realpathSync(filePath);
-          if (!fs3.lstatSync(filePath).isFile()) {
+          filePath = fs4.realpathSync(filePath);
+          if (!fs4.lstatSync(filePath).isFile()) {
             throw new Error();
           }
         } catch (err) {
@@ -40909,7 +40909,7 @@ var require_googleauth = __commonJS({
           }
           throw err;
         }
-        const readStream = fs3.createReadStream(filePath);
+        const readStream = fs4.createReadStream(filePath);
         return this.fromStream(readStream, options);
       }
       /**
@@ -41238,7 +41238,7 @@ var require_googleauth = __commonJS({
           return this._cacheClientFromJSON(this.jsonContent, this.clientOptions);
         } else if (this.keyFilename) {
           const filePath = path3.resolve(this.keyFilename);
-          const stream = fs3.createReadStream(filePath);
+          const stream = fs4.createReadStream(filePath);
           return await this.fromStreamAsync(stream, this.clientOptions);
         } else if (this.apiKey) {
           const client = await this.fromAPIKey(this.apiKey, this.clientOptions);
@@ -45472,6 +45472,7 @@ var require_websocket_server = __commonJS({
 var import_express = __toESM(require_express2(), 1);
 var import_dotenv = __toESM(require_main(), 1);
 var import_path = __toESM(require("path"), 1);
+var import_fs2 = __toESM(require("fs"), 1);
 var import_url = require("url");
 
 // node_modules/@google/genai/dist/node/index.mjs
@@ -66560,8 +66561,8 @@ var GeminiNextGenEnvironmentFiles = class {
       try {
         const req = globalThis.require;
         if (req) {
-          const fs3 = req("fs");
-          buffer = fs3.readFileSync(params.file);
+          const fs4 = req("fs");
+          buffer = fs4.readFileSync(params.file);
         }
       } catch (_j) {
       }
@@ -66569,8 +66570,8 @@ var GeminiNextGenEnvironmentFiles = class {
         try {
           const mod = (_b = (_a2 = globalThis.process.mainModule) === null || _a2 === void 0 ? void 0 : _a2.require) !== null && _b !== void 0 ? _b : globalThis.require;
           if (mod) {
-            const fs3 = mod("fs");
-            buffer = fs3.readFileSync(params.file);
+            const fs4 = mod("fs");
+            buffer = fs4.readFileSync(params.file);
           }
         } catch (_k) {
         }
@@ -69214,6 +69215,9 @@ var import_meta = {};
 import_dotenv.default.config();
 var getDirname = () => {
   try {
+    if (typeof __dirname !== "undefined" && __dirname) {
+      return __dirname;
+    }
     return import_path.default.dirname((0, import_url.fileURLToPath)(import_meta.url));
   } catch (_) {
     return process.cwd();
@@ -70130,15 +70134,17 @@ async function startServer() {
   } else {
     const procResources = process.resourcesPath || "";
     const possibleDistPaths = [
+      import_path.default.resolve(appDirname, "../dist"),
       import_path.default.resolve(appDirname, "dist"),
       import_path.default.resolve(process.cwd(), "dist"),
       import_path.default.resolve(procResources, "dist"),
-      import_path.default.resolve(procResources, "app.asar/dist")
+      import_path.default.resolve(procResources, "app.asar/dist"),
+      import_path.default.resolve(procResources, "app/dist")
     ];
     let distPath = possibleDistPaths[0];
     for (const p of possibleDistPaths) {
       try {
-        if (p && import_path.default.isAbsolute(p)) {
+        if (p && import_fs2.default.existsSync(import_path.default.join(p, "index.html"))) {
           distPath = p;
           break;
         }
@@ -70150,8 +70156,8 @@ async function startServer() {
       res.sendFile(import_path.default.join(distPath, "index.html"));
     });
   }
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`TITAN AI server running at http://0.0.0.0:${PORT}`);
+  app.listen(PORT, "127.0.0.1", () => {
+    console.log(`TITAN AI server running at http://127.0.0.1:${PORT}`);
   });
 }
 startServer().catch((err) => {

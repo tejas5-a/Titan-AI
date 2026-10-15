@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 
@@ -8,6 +9,9 @@ dotenv.config();
 
 const getDirname = () => {
   try {
+    if (typeof __dirname !== 'undefined' && __dirname) {
+      return __dirname;
+    }
     return path.dirname(fileURLToPath(import.meta.url));
   } catch (_) {
     return process.cwd();
@@ -908,15 +912,17 @@ async function startServer() {
   } else {
     const procResources = (process as any).resourcesPath || '';
     const possibleDistPaths = [
+      path.resolve(appDirname, '../dist'),
       path.resolve(appDirname, 'dist'),
       path.resolve(process.cwd(), 'dist'),
       path.resolve(procResources, 'dist'),
       path.resolve(procResources, 'app.asar/dist'),
+      path.resolve(procResources, 'app/dist'),
     ];
     let distPath = possibleDistPaths[0];
     for (const p of possibleDistPaths) {
       try {
-        if (p && path.isAbsolute(p)) {
+        if (p && fs.existsSync(path.join(p, 'index.html'))) {
           distPath = p;
           break;
         }
@@ -929,8 +935,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`TITAN AI server running at http://0.0.0.0:${PORT}`);
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`TITAN AI server running at http://127.0.0.1:${PORT}`);
   });
 }
 
