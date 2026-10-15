@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { NavigationDestination } from '../../types';
 import {
   LayoutDashboard,
   MessagesSquare,
-  Swords,
   Compass,
   Code2,
   Eye,
@@ -12,8 +11,6 @@ import {
   Users2,
   FolderGit2,
   History,
-  FlaskConical,
-  BarChart3,
   Settings as SettingsIcon,
   ChevronLeft,
   ChevronRight,
@@ -22,8 +19,6 @@ import {
   Sun,
   ShieldCheck,
   Cpu,
-  Sparkles,
-  Search,
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -49,7 +44,6 @@ export function AppShell({ children }: AppShellProps) {
   const navItems: Array<{ id: NavigationDestination; label: string; icon: React.ReactNode; badge?: string }> = [
     { id: 'home', label: 'Home', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'chat', label: 'Collective Chat', icon: <MessagesSquare className="w-4 h-4" /> },
-    { id: 'debate', label: 'AI Debate', icon: <Swords className="w-4 h-4" /> },
     { id: 'research', label: 'Deep Research', icon: <Compass className="w-4 h-4" /> },
     { id: 'coding', label: 'AI Coding Studio', icon: <Code2 className="w-4 h-4" /> },
     { id: 'vision', label: 'Vision Studio', icon: <Eye className="w-4 h-4" /> },
@@ -57,8 +51,6 @@ export function AppShell({ children }: AppShellProps) {
     { id: 'agents', label: 'Agent Workspace', icon: <Users2 className="w-4 h-4" /> },
     { id: 'projects', label: 'Projects', icon: <FolderGit2 className="w-4 h-4" />, badge: `${projects.length}` },
     { id: 'history', label: 'History', icon: <History className="w-4 h-4" /> },
-    { id: 'laboratory', label: 'Model Laboratory', icon: <FlaskConical className="w-4 h-4" /> },
-    { id: 'usage', label: 'Usage & Costs', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <SettingsIcon className="w-4 h-4" /> },
   ];
 
@@ -81,7 +73,6 @@ export function AppShell({ children }: AppShellProps) {
         <div className="flex items-center justify-between px-3.5 py-4 border-b border-[#e8e2d8]/60 dark:border-[#33302c]/70 h-16">
           {!sidebarCollapsed ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              {/* Claude style terracotta emblem */}
               <div className="w-7 h-7 rounded-lg bg-[#c25e2e] dark:bg-[#d97757] flex items-center justify-center text-white font-serif font-bold text-sm shadow-xs flex-shrink-0">
                 T
               </div>
@@ -114,7 +105,7 @@ export function AppShell({ children }: AppShellProps) {
           </button>
         </div>
 
-        {/* Primary Action: Claude style Start New Chat */}
+        {/* Primary Action: Start New Chat */}
         <div className="p-3">
           <button
             onClick={newChat}
@@ -202,7 +193,7 @@ export function AppShell({ children }: AppShellProps) {
                 </span>
                 <button
                   onClick={() => setActiveView('settings')}
-                  className="text-[11px] text-[#c25e2e] dark:text-[#d97757] hover:underline"
+                  className="text-[11px] text-[#c25e2e] dark:text-[#d97757] hover:underline cursor-pointer"
                 >
                   Manage
                 </button>
@@ -223,7 +214,7 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* MAIN VIEWPORT */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#faf8f5] dark:bg-[#181716]">
-        {/* Top Header - Claude style minimal */}
+        {/* Header */}
         <header className="h-14 border-b border-[#e8e2d8] dark:border-[#33302c] bg-[#faf8f5]/90 dark:bg-[#181716]/90 backdrop-blur-xs flex items-center justify-between px-6 z-20 flex-shrink-0">
           <div className="flex items-center gap-3">
             <h1 className="font-serif text-base font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
@@ -236,7 +227,6 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Quick Model Selector Pill */}
             <button
               onClick={() => setActiveView('settings')}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#ded7cb] dark:border-[#383530] bg-white dark:bg-[#22201e] text-xs text-[#2e2c29] dark:text-[#ded8ce] hover:border-[#c25e2e] dark:hover:border-[#d97757] transition-colors cursor-pointer shadow-2xs"
@@ -248,7 +238,6 @@ export function AppShell({ children }: AppShellProps) {
               </span>
             </button>
 
-            {/* Paid API Usage Shield */}
             <div
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${
                 settings.allowPaidUsage
@@ -262,7 +251,6 @@ export function AppShell({ children }: AppShellProps) {
               </span>
             </div>
 
-            {/* Dark/Light Theme Toggle */}
             <button
               onClick={toggleTheme}
               className="p-1.5 rounded-full border border-[#ded7cb] dark:border-[#383530] text-[#6e685e] dark:text-[#9e988e] hover:text-[#1f1e1d] dark:hover:text-[#ede8e1] hover:bg-[#ede7dc] dark:hover:bg-[#262421] transition-colors cursor-pointer"

@@ -8,10 +8,11 @@ import {
   Provider,
   AgentRole,
   AgentTask,
-  UsageRecord,
   UserSettings,
+  FetchedModel,
+  ProviderId,
 } from '../types';
-import { storage, DEFAULT_SETTINGS } from '../services/storage';
+import { storage } from '../services/storage';
 
 interface AppContextValue {
   activeView: NavigationDestination;
@@ -23,6 +24,7 @@ interface AppContextValue {
   enableAllModels: () => void;
   disableAllModels: () => void;
   updateModel: (model: ModelDefinition) => void;
+  addFetchedModels: (providerId: ProviderId, fetchedList: FetchedModel[]) => void;
   settings: UserSettings;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
   sessions: CollaborationSession[];
@@ -53,8 +55,6 @@ interface AppContextValue {
   createAgentTask: (task: Omit<AgentTask, 'id' | 'createdAt' | 'status'>) => AgentTask;
   executeAgentTask: (taskId: string) => Promise<void>;
   deleteAgentTask: (taskId: string) => void;
-  usageRecords: UsageRecord[];
-  refreshUsage: () => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   inspectorOpen: boolean;
@@ -125,6 +125,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setModels((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
   };
 
+  const addFetchedModels = (providerId: ProviderId, fetchedList: FetchedModel[]) => {
+    const newDefinitions: ModelDefinition[] = fetchedList.map((f) => ({
+      id: f.id,
+      name: f.name || f.id,
+      provider: providerId,
+      isEnabled: true,
+      isFree: true,
+      contextWindow: f.contextWindow || '128k',
+      capabilities: {
+        vision: Boolean(f.supportsVision),
+        coding: Boolean(f.supportsCoding),
+        reasoning: true,
+        fast: true,
+        freeTier: true,
+      },
+      description: f.description || `${providerId.toUpperCase()} fetched model`,
+    }));
+
+    setModels((prev) => {
+      const existingMap = new Map(prev.map((m) => [m.id, m]));
+      newDefinitions.forEach((def) => {
+        existingMap.set(def.id, def);
+      });
+      const updated = Array.from(existingMap.values());
+      storage.saveModels(updated);
+      return updated;
+    });
+  };
+
   // Sessions
   const [sessions, setSessions] = useState<CollaborationSession[]>(() => storage.getSessions());
   const [activeSession, setActiveSession] = useState<CollaborationSession | null>(() => {
@@ -176,21 +205,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const runCollaboration = async (prompt: string, attachedImage?: string): Promise<CollaborationSession | null> => {
     const enabledModels = models.filter((m) => m.isEnabled);
     if (enabledModels.length === 0) {
-      alert('Please enable at least one model to run a collaboration.');
+      alert('Please enable at least one model in Settings or the Model Inspector.');
       return null;
-    }
-
-    // Safety check for paid usage
-    if (!settings.allowPaidUsage) {
-      const paidModels = enabledModels.filter((m) => !m.isFree);
-      if (paidModels.length > 0) {
-        alert(
-          `"Allow paid API usage" is turned OFF in Settings, but paid model(s) (${paidModels
-            .map((p) => p.name)
-            .join(', ')}) were selected. Please disable them or enable paid usage in Settings.`
-        );
-        return null;
-      }
     }
 
     const controller = new AbortController();
@@ -209,7 +225,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         respondedCount: 0,
         failedCount: 0,
         peerReviewsCount: 0,
-        debatesCount: 0,
       },
       rounds: {
         round1_independent: enabledModels.map((m) => ({
@@ -219,9 +234,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           status: 'running',
         })),
         round2_peerReview: [],
-        round3_debate: [],
         round4_synthesis: {
-          modelUsed: settings.synthesisModel,
+          modelUsed: enabledModels[0].name,
           synthesisText: '',
         },
       },
@@ -232,16 +246,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCollaborationProgress({ round: 'round1', message: `Dispatching to ${enabledModels.length} models concurrently...` });
 
     try {
+      // Build conversation history for follow-up questions
+      const historyMessages: Array<{ role: string; content: string }> = [];
+      if (activeSession && activeSession.rounds.round4_synthesis.synthesisText) {
+        historyMessages.push({ role: 'user', content: activeSession.userPrompt });
+        historyMessages.push({ role: 'assistant', content: activeSession.rounds.round4_synthesis.synthesisText });
+      }
+
       const payload = {
         prompt,
         models: enabledModels,
+        history: historyMessages,
         roundsConfig: {
           peerReview: settings.autoPeerReview,
-          debate: settings.autoDebate,
-          synthesis: true,
           maxConcurrency: settings.maxConcurrency,
           timeoutMs: settings.perRequestTimeoutSec * 1000,
-          synthesisModel: settings.synthesisModel,
         },
         attachedImage,
       };
@@ -271,148 +290,110 @@ export function AppProvider({ children }: { children: ReactNode }) {
         projectId: activeProject?.id,
       };
 
-      // Record usage telemetry
-      data.rounds.round1_independent.forEach((item: any) => {
-        if (item.usage) {
-          storage.addUsageRecord({
-            id: 'usg_' + Math.random().toString(36).substring(2, 9),
-            timestamp: new Date().toISOString(),
-            sessionId: data.sessionId,
-            modelId: item.modelId,
-            modelName: item.modelName,
-            provider: item.provider,
-            promptTokens: item.usage.promptTokens || 0,
-            completionTokens: item.usage.completionTokens || 0,
-            totalTokens: item.usage.totalTokens || 0,
-            latencyMs: item.latencyMs || 0,
-            isPaid: false,
-            estimatedCostUsd: 0,
-          });
-        }
-      });
-
       setSessions((prev) => [completedSession, ...prev.filter((s) => s.sessionId !== tempSession.sessionId)]);
       setActiveSession(completedSession);
       storage.saveSession(completedSession);
       setCollaborationProgress({ round: 'done', message: `Completed in ${data.totalLatencyMs}ms.` });
-      setIsCollaborating(false);
       return completedSession;
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        return null;
+        console.log('Collaboration aborted by user.');
+      } else {
+        const failedSession: CollaborationSession = {
+          ...tempSession,
+          status: 'failed',
+          rounds: {
+            ...tempSession.rounds,
+            round4_synthesis: {
+              modelUsed: enabledModels[0]?.name || 'Error',
+              synthesisText: `### Collaboration Failed\n\n${err.message}`,
+            },
+          },
+        };
+        setActiveSession(failedSession);
       }
-      console.error('Collaboration failed:', err);
-      const failedSession: CollaborationSession = {
-        ...tempSession,
-        status: 'failed',
-      };
-      setActiveSession(failedSession);
-      storage.saveSession(failedSession);
-      setCollaborationProgress({ round: 'done', message: `Error: ${err.message}` });
+      return null;
+    } finally {
       setIsCollaborating(false);
-      return failedSession;
+      setAbortController(null);
     }
   };
 
   // Projects
   const [projects, setProjects] = useState<Project[]>(() => storage.getProjects());
-  const [activeProject, setActiveProject] = useState<Project | null>(() => {
-    const list = storage.getProjects();
-    return list.length > 0 ? list[0] : null;
-  });
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
-  useEffect(() => {
-    storage.saveProjects(projects);
-  }, [projects]);
-
-  const createProject = (name: string, description: string, tags: string[] = []) => {
-    const newProj: Project = {
+  const createProject = (name: string, description: string, tags: string[] = []): Project => {
+    const proj: Project = {
       id: 'proj_' + Date.now(),
       name,
       description,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      files: [],
       conversationIds: [],
       tags,
-      files: [
-        {
-          id: 'file_' + Date.now(),
-          name: 'README.md',
-          path: 'README.md',
-          language: 'markdown',
-          updatedAt: new Date().toISOString(),
-          content: `# ${name}\n\n${description}\n\n*Created in TITAN AI Project Workspace.*`,
-        },
-      ],
     };
-    setProjects((prev) => [newProj, ...prev]);
-    setActiveProject(newProj);
-    return newProj;
+    storage.saveProject(proj);
+    setProjects((prev) => [proj, ...prev]);
+    return proj;
   };
 
-  const updateProject = (updated: Project) => {
-    setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...updated, updatedAt: new Date().toISOString() } : p)));
-    if (activeProject?.id === updated.id) {
-      setActiveProject(updated);
-    }
+  const updateProject = (proj: Project) => {
+    const updated = { ...proj, updatedAt: new Date().toISOString() };
+    storage.saveProject(updated);
+    setProjects((prev) => prev.map((p) => (p.id === proj.id ? updated : p)));
+    if (activeProject?.id === proj.id) setActiveProject(updated);
   };
 
   const deleteProject = (id: string) => {
-    const updated = projects.filter((p) => p.id !== id);
-    setProjects(updated);
-    if (activeProject?.id === id) {
-      setActiveProject(updated.length > 0 ? updated[0] : null);
-    }
+    storage.deleteProject(id);
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+    if (activeProject?.id === id) setActiveProject(null);
   };
 
   // Knowledge Documents
   const [knowledgeDocs, setKnowledgeDocs] = useState<KnowledgeDocument[]>(() => storage.getDocuments());
-  useEffect(() => {
-    storage.saveDocuments(knowledgeDocs);
-  }, [knowledgeDocs]);
 
-  const addDocument = (docData: Omit<KnowledgeDocument, 'id' | 'indexedAt'>) => {
-    const newDoc: KnowledgeDocument = {
-      ...docData,
+  const addDocument = (docInput: Omit<KnowledgeDocument, 'id' | 'indexedAt'>) => {
+    const doc: KnowledgeDocument = {
+      ...docInput,
       id: 'doc_' + Date.now(),
       indexedAt: new Date().toISOString(),
     };
-    setKnowledgeDocs((prev) => [newDoc, ...prev]);
+    storage.saveDocument(doc);
+    setKnowledgeDocs((prev) => [doc, ...prev]);
   };
 
   const removeDocument = (id: string) => {
+    storage.deleteDocument(id);
     setKnowledgeDocs((prev) => prev.filter((d) => d.id !== id));
   };
 
   // Agent Roles & Tasks
   const [agentRoles, setAgentRoles] = useState<AgentRole[]>(() => storage.getAgentRoles());
-  useEffect(() => {
-    storage.saveAgentRoles(agentRoles);
-  }, [agentRoles]);
-
   const updateAgentRole = (role: AgentRole) => {
+    storage.saveAgentRole(role);
     setAgentRoles((prev) => prev.map((r) => (r.id === role.id ? role : r)));
   };
 
   const reorderAgentRoles = (newRoles: AgentRole[]) => {
-    const ordered = newRoles.map((r, i) => ({ ...r, order: i + 1 }));
-    setAgentRoles(ordered);
+    setAgentRoles(newRoles);
+    newRoles.forEach((r) => storage.saveAgentRole(r));
   };
 
   const [agentTasks, setAgentTasks] = useState<AgentTask[]>(() => storage.getAgentTasks());
-  useEffect(() => {
-    storage.saveAgentTasks(agentTasks);
-  }, [agentTasks]);
 
-  const createAgentTask = (taskData: Omit<AgentTask, 'id' | 'createdAt' | 'status'>): AgentTask => {
-    const newTask: AgentTask = {
-      ...taskData,
+  const createAgentTask = (taskInput: Omit<AgentTask, 'id' | 'createdAt' | 'status'>): AgentTask => {
+    const task: AgentTask = {
+      ...taskInput,
       id: 'task_' + Date.now(),
-      status: 'pending',
       createdAt: new Date().toISOString(),
+      status: 'pending',
     };
-    setAgentTasks((prev) => [newTask, ...prev]);
-    return newTask;
+    storage.saveAgentTask(task);
+    setAgentTasks((prev) => [task, ...prev]);
+    return task;
   };
 
   const executeAgentTask = async (taskId: string) => {
@@ -420,64 +401,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!task) return;
 
     const role = agentRoles.find((r) => r.id === task.assignedRoleId);
-    const assignedModel = models.find((m) => m.id === role?.assignedModelId) || models[0];
+    const assignedModel = models.find((m) => m.id === role?.assignedModelId);
 
-    setAgentTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: 'running' } : t))
-    );
+    const updatedTask: AgentTask = { ...task, status: 'running' };
+    setAgentTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
 
     try {
-      const prompt = `ROLE: ${role?.title || 'Specialist'}\nINSTRUCTION: ${role?.systemPrompt || ''}\n\nTASK OBJECTIVE: ${task.objective}\nINPUT CONTEXT: ${task.inputContext || 'None'}\n\nExecute this objective comprehensively and provide structured output.`;
-
       const res = await fetch('/api/generate-single', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: assignedModel?.provider || 'gemini',
-          model: assignedModel?.id || 'gemini-3.8-flash',
-          prompt,
+          model: assignedModel?.id || 'gemini-1.5-flash',
+          prompt: `${task.objective}\n\nContext:\n${task.inputContext}`,
+          systemInstruction: role?.systemPrompt,
         }),
       });
 
-      if (!res.ok) throw new Error(`Task execution failed (${res.status})`);
       const data = await res.json();
+      const completed: AgentTask = {
+        ...task,
+        status: res.ok ? 'completed' : 'failed',
+        output: data.text || data.error || 'Execution failed',
+        completedAt: new Date().toISOString(),
+      };
 
-      setAgentTasks((prev) =>
-        prev.map((t) =>
-          t.id === taskId
-            ? {
-                ...t,
-                status: 'completed',
-                output: data.text,
-                completedAt: new Date().toISOString(),
-              }
-            : t
-        )
-      );
+      storage.saveAgentTask(completed);
+      setAgentTasks((prev) => prev.map((t) => (t.id === taskId ? completed : t)));
     } catch (err: any) {
-      setAgentTasks((prev) =>
-        prev.map((t) =>
-          t.id === taskId
-            ? {
-                ...t,
-                status: 'failed',
-                error: err.message,
-                completedAt: new Date().toISOString(),
-              }
-            : t
-        )
-      );
+      const failed: AgentTask = {
+        ...task,
+        status: 'failed',
+        error: err.message,
+        completedAt: new Date().toISOString(),
+      };
+      storage.saveAgentTask(failed);
+      setAgentTasks((prev) => prev.map((t) => (t.id === taskId ? failed : t)));
     }
   };
 
   const deleteAgentTask = (taskId: string) => {
+    storage.deleteAgentTask(taskId);
     setAgentTasks((prev) => prev.filter((t) => t.id !== taskId));
-  };
-
-  // Usage records
-  const [usageRecords, setUsageRecords] = useState<UsageRecord[]>(() => storage.getUsageRecords());
-  const refreshUsage = () => {
-    setUsageRecords(storage.getUsageRecords());
   };
 
   return (
@@ -492,6 +457,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         enableAllModels,
         disableAllModels,
         updateModel,
+        addFetchedModels,
         settings,
         updateSettings,
         sessions,
@@ -519,8 +485,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createAgentTask,
         executeAgentTask,
         deleteAgentTask,
-        usageRecords,
-        refreshUsage,
         sidebarCollapsed,
         setSidebarCollapsed,
         inspectorOpen,

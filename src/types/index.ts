@@ -7,9 +7,22 @@ export interface Provider {
   hasKey: boolean;
   description: string;
   baseUrl?: string;
+  apiKey?: string;
   modelsCount: number;
   supportsStreaming: boolean;
   supportsVision: boolean;
+  selectedModels?: string[];
+  fetchedModels?: FetchedModel[];
+}
+
+export interface FetchedModel {
+  id: string;
+  name: string;
+  provider: ProviderId;
+  description?: string;
+  contextWindow?: string;
+  supportsVision?: boolean;
+  supportsCoding?: boolean;
 }
 
 export interface ModelCapability {
@@ -59,14 +72,6 @@ export interface PeerReviewItem {
   latencyMs?: number;
 }
 
-export interface DebateExchangeItem {
-  topic: string;
-  participants: string[];
-  exchange?: string;
-  status: 'completed' | 'failed' | 'running';
-  error?: string;
-}
-
 export interface SynthesisOutput {
   modelUsed: string;
   synthesisText: string;
@@ -86,12 +91,12 @@ export interface CollaborationSession {
     respondedCount: number;
     failedCount: number;
     peerReviewsCount: number;
-    debatesCount: number;
+    debatesCount?: number;
   };
   rounds: {
     round1_independent: ModelResponseItem[];
     round2_peerReview: PeerReviewItem[];
-    round3_debate: DebateExchangeItem[];
+    round3_debate?: any[];
     round4_synthesis: SynthesisOutput;
   };
   projectId?: string;
@@ -139,7 +144,7 @@ export interface AgentTask {
   status: 'pending' | 'running' | 'completed' | 'failed';
   output?: string;
   error?: string;
-  dependencies: string[]; // task IDs
+  dependencies: string[];
   createdAt: string;
   completedAt?: string;
 }
@@ -156,26 +161,11 @@ export interface KnowledgeDocument {
   summary?: string;
 }
 
-export interface UsageRecord {
-  id: string;
-  timestamp: string;
-  sessionId?: string;
-  modelId: string;
-  modelName: string;
-  provider: ProviderId;
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-  latencyMs: number;
-  isPaid: boolean;
-  estimatedCostUsd: number;
-}
-
 export interface UserSettings {
   theme: 'light' | 'dark';
-  allowPaidUsage: boolean; // Default false as required by specification
+  allowPaidUsage: boolean;
   autoPeerReview: boolean;
-  autoDebate: boolean;
+  autoDebate?: boolean;
   synthesisModel: string;
   maxConcurrency: number;
   perRequestTimeoutSec: number;
@@ -187,7 +177,6 @@ export interface UserSettings {
 export type NavigationDestination =
   | 'home'
   | 'chat'
-  | 'debate'
   | 'research'
   | 'coding'
   | 'vision'
@@ -195,6 +184,4 @@ export type NavigationDestination =
   | 'agents'
   | 'projects'
   | 'history'
-  | 'laboratory'
-  | 'usage'
   | 'settings';

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ProviderId, ModelDefinition } from '../../types';
-import { ModelPill } from '../common/ModelPill';
+import { ProviderId, FetchedModel } from '../../types';
 import {
   Settings as SettingsIcon,
   Key,
-  ShieldCheck,
   Cpu,
   Layers,
   Sparkles,
@@ -13,12 +11,12 @@ import {
   AlertCircle,
   Clock,
   RotateCcw,
-  Moon,
   Sun,
-  Server,
   Eye,
   EyeOff,
+  Search,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 
 export function SettingsView() {
@@ -31,17 +29,27 @@ export function SettingsView() {
     disableAllModels,
     settings,
     updateSettings,
+    addFetchedModels,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'providers' | 'models' | 'collaboration' | 'appearance' | 'about'>('providers');
 
   // Provider configuration inputs
-  const [editingProviderId, setEditingProviderId] = useState<ProviderId | null>('openrouter');
+  const [editingProviderId, setEditingProviderId] = useState<ProviderId>('openrouter');
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [baseUrlInput, setBaseUrlInput] = useState('');
   const [showKey, setShowKey] = useState(false);
+
+  // Connection testing state
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Model fetching state
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
+  const [fetchedModelsList, setFetchedModelsList] = useState<FetchedModel[]>([]);
+  const [selectedFetchedIds, setSelectedFetchedIds] = useState<Set<string>>(new Set());
+  const [modelSearchQuery, setModelSearchQuery] = useState('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const selectedProvider = providers.find((p) => p.id === editingProviderId);
 
@@ -62,7 +70,7 @@ export function SettingsView() {
       const data = await res.json();
       setTestResult({
         success: data.success,
-        message: data.message,
+        message: data.message || data.error,
       });
       refreshProviders();
     } catch (e: any) {
@@ -73,6 +81,57 @@ export function SettingsView() {
     } finally {
       setIsTesting(false);
     }
+  };
+
+  const handleFetchModels = async (id: ProviderId) => {
+    setIsFetchingModels(true);
+    setFetchError(null);
+    setFetchedModelsList([]);
+    setSelectedFetchedIds(new Set());
+
+    try {
+      const res = await fetch(`/api/providers/${id}/models`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          apiKey: apiKeyInput || undefined,
+          baseUrl: baseUrlInput || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || `HTTP ${res.status}: Failed to fetch models`);
+      }
+
+      const fetchedList: FetchedModel[] = data.models || [];
+      if (fetchedList.length === 0) {
+        setFetchError('No models returned by provider.');
+      } else {
+        setFetchedModelsList(fetchedList);
+        // Pre-select models
+        setSelectedFetchedIds(new Set(fetchedList.map((m) => m.id)));
+      }
+    } catch (err: any) {
+      setFetchError(err.message || 'Error fetching models from provider.');
+    } finally {
+      setIsFetchingModels(false);
+    }
+  };
+
+  const handleApplyFetchedModels = () => {
+    if (fetchedModelsList.length === 0) return;
+
+    const chosenModels = fetchedModelsList.filter((m) => selectedFetchedIds.has(m.id));
+    if (chosenModels.length === 0) {
+      alert('Please select at least one model from the list.');
+      return;
+    }
+
+    addFetchedModels(editingProviderId, chosenModels);
+    alert(`Successfully added ${chosenModels.length} model(s) for ${editingProviderId.toUpperCase()}.`);
+    setFetchedModelsList([]);
+    refreshProviders();
   };
 
   const handleSaveProvider = async (e: React.FormEvent) => {
@@ -91,8 +150,7 @@ export function SettingsView() {
       });
 
       if (res.ok) {
-        alert(`Provider ${editingProviderId} updated successfully.`);
-        setApiKeyInput('');
+        alert(`Provider ${editingProviderId} configuration saved.`);
         refreshProviders();
       }
     } catch (e) {
@@ -107,9 +165,15 @@ export function SettingsView() {
     }
   };
 
+  const filteredFetchedModels = fetchedModelsList.filter(
+    (m) =>
+      m.id.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+      m.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
+  );
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
-      {/* Claude Style Header */}
+      {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-[#e8e2d8] dark:border-[#33302c]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] text-[#c25e2e] dark:text-[#d97757] border border-[#e5ded0] dark:border-[#38342e]">
@@ -118,7 +182,7 @@ export function SettingsView() {
           <div>
             <h2 className="font-serif text-xl font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">Settings & Provider Integrations</h2>
             <p className="text-xs text-[#736e65] dark:text-[#9e978b]">
-              Manage provider API credentials, test network connectivity, configure models, and tune collaboration parameters.
+              Manage provider API credentials, fetch real available models, and configure participating model definitions.
             </p>
           </div>
         </div>
@@ -174,6 +238,8 @@ export function SettingsView() {
                     onClick={() => {
                       setEditingProviderId(p.id);
                       setTestResult(null);
+                      setFetchError(null);
+                      setFetchedModelsList([]);
                       setApiKeyInput('');
                       setBaseUrlInput(p.baseUrl || '');
                     }}
@@ -225,9 +291,9 @@ export function SettingsView() {
 
                 {selectedProvider.id === 'gemini' ? (
                   <div className="p-4 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] border border-[#e5ded0] dark:border-[#38342e] text-xs text-[#2d2b28] dark:text-[#ded8ce] space-y-1">
-                    <div className="font-serif font-semibold text-[#c25e2e] dark:text-[#d97757]">Automatic Server-Side Injection</div>
+                    <div className="font-serif font-semibold text-[#c25e2e] dark:text-[#d97757]">Google Gemini Key Active</div>
                     <p className="text-[11px] leading-relaxed text-[#736e65] dark:text-[#9e978b]">
-                      Google Gemini API is configured via the <code className="font-mono bg-[#ebe4d8] dark:bg-[#1a1917] px-1 py-0.5 rounded">GEMINI_API_KEY</code> environment secret on the backend. No manual browser key entry is required.
+                      Configured via <code className="font-mono bg-[#ebe4d8] dark:bg-[#1a1917] px-1 py-0.5 rounded">GEMINI_API_KEY</code> or server configuration. Click <strong>Fetch Models</strong> below to discover available Gemini models.
                     </p>
                   </div>
                 ) : (
@@ -253,7 +319,7 @@ export function SettingsView() {
                         </button>
                       </div>
                       <p className="text-[10px] text-[#8c857b]">
-                        Keys are submitted securely to the server session and never logged.
+                        Keys are transmitted securely to the server session and never stored in cleartext.
                       </p>
                     </div>
 
@@ -282,34 +348,119 @@ export function SettingsView() {
                     }`}
                   >
                     {testResult.success ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     ) : (
-                      <AlertCircle className="w-4 h-4 text-rose-500" />
+                      <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
                     )}
                     <span>{testResult.message}</span>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-3 border-t border-[#f0ebd5] dark:border-[#2d2a27] text-xs">
-                  <button
-                    type="button"
-                    onClick={() => handleTestConnection(selectedProvider.id)}
-                    disabled={isTesting}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] hover:bg-[#ede5d5] text-[#2d2b28] dark:text-[#ded8ce] font-medium cursor-pointer transition-colors border border-[#ded7cb] dark:border-[#383530]"
-                  >
-                    <Clock className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin text-[#c25e2e]' : ''}`} />
-                    <span>{isTesting ? 'Pinging Provider...' : 'Test Connection'}</span>
-                  </button>
+                {/* Fetch Error Message */}
+                {fetchError && (
+                  <div className="p-3 rounded-xl text-xs flex items-center gap-2 border bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800 font-mono">
+                    <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                    <span>{fetchError}</span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#f0ebd5] dark:border-[#2d2a27] text-xs">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleTestConnection(selectedProvider.id)}
+                      disabled={isTesting}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#f5f0e6] dark:bg-[#282622] hover:bg-[#ede5d5] text-[#2d2b28] dark:text-[#ded8ce] font-medium cursor-pointer transition-colors border border-[#ded7cb] dark:border-[#383530]"
+                    >
+                      <Clock className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin text-[#c25e2e]' : ''}`} />
+                      <span>{isTesting ? 'Testing...' : 'Test Connection'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleFetchModels(selectedProvider.id)}
+                      disabled={isFetchingModels}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#f2ecdf] dark:bg-[#2c2925] hover:bg-[#eae1d0] text-[#c25e2e] dark:text-[#d97757] font-semibold cursor-pointer transition-colors border border-[#e5ded0] dark:border-[#3d3831]"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isFetchingModels ? 'animate-spin' : ''}`} />
+                      <span>{isFetchingModels ? 'Fetching Models...' : 'Fetch Models'}</span>
+                    </button>
+                  </div>
 
                   {selectedProvider.id !== 'gemini' && (
                     <button
                       type="submit"
                       className="px-4 py-2 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] text-white font-medium cursor-pointer shadow-xs transition-colors"
                     >
-                      Save Configuration
+                      Save Key
                     </button>
                   )}
                 </div>
+
+                {/* Fetched Models Checklist Drawer */}
+                {fetchedModelsList.length > 0 && (
+                  <div className="pt-4 border-t border-[#f0ebd5] dark:border-[#2d2a27] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-serif font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
+                        Fetched Models ({fetchedModelsList.length} found)
+                      </div>
+                      <span className="text-[11px] text-[#8c857b]">
+                        {selectedFetchedIds.size} of {fetchedModelsList.length} selected
+                      </span>
+                    </div>
+
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#8c857b]" />
+                      <input
+                        type="text"
+                        value={modelSearchQuery}
+                        onChange={(e) => setModelSearchQuery(e.target.value)}
+                        placeholder="Search fetched models..."
+                        className="w-full text-xs rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] pl-9 pr-3 py-1.5 text-[#1f1e1d] dark:text-[#ede8e1]"
+                      />
+                    </div>
+
+                    <div className="max-h-60 overflow-y-auto space-y-1 border border-[#ded7cb] dark:border-[#383530] rounded-xl p-2 bg-[#fbfaf8] dark:bg-[#1a1917] custom-scrollbar">
+                      {filteredFetchedModels.map((m) => {
+                        const isChecked = selectedFetchedIds.has(m.id);
+                        return (
+                          <label
+                            key={m.id}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-[#f2ecdf] dark:hover:bg-[#282622] cursor-pointer text-xs"
+                          >
+                            <div className="flex items-center gap-2 min-w-0 pr-2">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const next = new Set(selectedFetchedIds);
+                                  if (e.target.checked) next.add(m.id);
+                                  else next.delete(m.id);
+                                  setSelectedFetchedIds(next);
+                                }}
+                                className="rounded text-[#c25e2e] focus:ring-[#c25e2e]"
+                              />
+                              <div className="min-w-0">
+                                <div className="font-mono text-xs text-[#1f1e1d] dark:text-[#ede8e1] truncate">{m.id}</div>
+                                {m.name !== m.id && <div className="text-[11px] text-[#8c857b] truncate">{m.name}</div>}
+                              </div>
+                            </div>
+                            <span className="font-mono text-[10px] text-[#8c857b] flex-shrink-0">{m.contextWindow || '128k'}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleApplyFetchedModels}
+                      className="w-full py-2 rounded-xl bg-[#c25e2e] hover:bg-[#b05225] text-white text-xs font-semibold cursor-pointer shadow-xs transition-colors"
+                    >
+                      Save Selected Models to Picker ({selectedFetchedIds.size})
+                    </button>
+                  </div>
+                )}
               </form>
             ) : null}
           </div>
@@ -346,187 +497,69 @@ export function SettingsView() {
                 className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-4 space-y-2 shadow-xs"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0 pr-2">
                     <input
                       type="checkbox"
                       checked={model.isEnabled}
                       onChange={() => toggleModel(model.id)}
-                      className="rounded accent-[#c25e2e] cursor-pointer"
+                      className="rounded text-[#c25e2e] focus:ring-[#c25e2e] cursor-pointer"
                     />
-                    <span className="font-serif text-xs font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
-                      {model.name}
-                    </span>
-                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-[#f5f0e6] dark:bg-[#282622] text-[#736e65] dark:text-[#9e978b] border border-[#ded7cb] dark:border-[#383530]">
-                      {model.provider}
-                    </span>
+                    <div className="min-w-0">
+                      <div className="font-serif text-xs font-semibold text-[#1f1e1d] dark:text-[#ede8e1] truncate">{model.name}</div>
+                      <div className="font-mono text-[10px] text-[#8c857b] uppercase">{model.provider} • {model.id}</div>
+                    </div>
                   </div>
-
-                  {model.isFree && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60">
-                      Free Tier
-                    </span>
-                  )}
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                      model.isEnabled ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                    }`}
+                  >
+                    {model.isEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
                 </div>
-
-                <p className="text-xs text-[#736e65] dark:text-[#9e978b] leading-relaxed">
-                  {model.description}
-                </p>
-
-                <div className="flex items-center gap-3 text-[11px] font-mono text-[#8c857b] pt-1">
-                  <span>Context: {model.contextWindow}</span>
-                  <span>•</span>
-                  <span>Vision: {model.capabilities.vision ? 'Yes' : 'No'}</span>
-                  <span>•</span>
-                  <span>Coding: {model.capabilities.coding ? 'Yes' : 'No'}</span>
-                </div>
+                <p className="text-xs text-[#736e65] dark:text-[#9e978b]">{model.description}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* TAB 3: COLLABORATION PIPELINE */}
+      {/* TAB 3: PIPELINE SETTINGS */}
       {activeTab === 'collaboration' && (
-        <div className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 space-y-5 shadow-xs">
-          <div className="space-y-1">
-            <h3 className="font-serif text-sm font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
-              Collective Reasoning & Pipeline Defaults
-            </h3>
-            <p className="text-xs text-[#736e65] dark:text-[#9e978b]">
-              Configure how models interact across the 4 stages of collaboration.
-            </p>
-          </div>
-
-          <div className="space-y-4 text-xs">
-            <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-[#ded7cb] dark:border-[#383530] bg-[#fbfaf8] dark:bg-[#1a1917] cursor-pointer">
+        <div className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 space-y-4 shadow-xs text-xs">
+          <h3 className="font-serif text-sm font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
+            Collective Reasoning Pipeline Controls
+          </h3>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between p-3 rounded-xl border border-[#ded7cb] dark:border-[#383530] bg-[#fbfaf8] dark:bg-[#1a1917] cursor-pointer">
+              <div>
+                <div className="font-medium text-[#1f1e1d] dark:text-[#ede8e1]">Round 2: Peer Review</div>
+                <div className="text-[11px] text-[#736e65] dark:text-[#9e978b]">
+                  Models evaluate each other's responses to spot errors and oversights before synthesis.
+                </div>
+              </div>
               <input
                 type="checkbox"
                 checked={settings.autoPeerReview}
                 onChange={(e) => updateSettings({ autoPeerReview: e.target.checked })}
-                className="mt-0.5 rounded accent-[#c25e2e]"
+                className="rounded text-[#c25e2e] focus:ring-[#c25e2e]"
               />
-              <div>
-                <div className="font-serif font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
-                  Round 2: Cross-Model Peer Review (Recommended)
-                </div>
-                <div className="text-[#736e65] dark:text-[#9e978b] mt-0.5 leading-relaxed">
-                  Models critique each other's proposals, pinpointing missing edge cases, security vulnerabilities, and contradictions.
-                </div>
-              </div>
             </label>
 
-            <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-[#ded7cb] dark:border-[#383530] bg-[#fbfaf8] dark:bg-[#1a1917] cursor-pointer">
+            <label className="flex items-center justify-between p-3 rounded-xl border border-[#ded7cb] dark:border-[#383530] bg-[#fbfaf8] dark:bg-[#1a1917] cursor-pointer">
+              <div>
+                <div className="font-medium text-[#1f1e1d] dark:text-[#ede8e1]">Strictly Free Model Guard</div>
+                <div className="text-[11px] text-[#736e65] dark:text-[#9e978b]">
+                  Block paid model execution if turned off.
+                </div>
+              </div>
               <input
                 type="checkbox"
-                checked={settings.autoDebate}
-                onChange={(e) => updateSettings({ autoDebate: e.target.checked })}
-                className="mt-0.5 rounded accent-[#c25e2e]"
+                checked={!settings.allowPaidUsage}
+                onChange={(e) => updateSettings({ allowPaidUsage: !e.target.checked })}
+                className="rounded text-[#c25e2e] focus:ring-[#c25e2e]"
               />
-              <div>
-                <div className="font-serif font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">
-                  Round 3: Automatic Debate Triggering
-                </div>
-                <div className="text-[#736e65] dark:text-[#9e978b] mt-0.5 leading-relaxed">
-                  When opposing model proposals contradict, automatically stage an adversarial challenge round.
-                </div>
-              </div>
             </label>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div>
-                <label className="block text-[#615c54] dark:text-[#9e978b] font-medium mb-1">
-                  Master Synthesizer Model
-                </label>
-                <select
-                  value={settings.synthesisModel}
-                  onChange={(e) => updateSettings({ synthesisModel: e.target.value })}
-                  className="w-full text-xs rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530] px-3.5 py-2.5 text-[#1f1e1d] dark:text-[#ede8e1]"
-                >
-                  <option value="gemini-3.8-flash">Gemini 3.8 Flash (Built-in High Speed)</option>
-                  <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-                  <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[#615c54] dark:text-[#9e978b] font-medium mb-1">
-                  Maximum Concurrent Invocations ({settings.maxConcurrency})
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={settings.maxConcurrency}
-                  onChange={(e) => updateSettings({ maxConcurrency: parseInt(e.target.value) })}
-                  className="w-full accent-[#c25e2e] mt-2"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: APPEARANCE */}
-      {activeTab === 'appearance' && (
-        <div className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 space-y-4 shadow-xs">
-          <h3 className="font-serif text-sm font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">Appearance & Workspace Theme</h3>
-
-          <div className="grid grid-cols-2 gap-4 max-w-md">
-            <button
-              onClick={() => updateSettings({ theme: 'light' })}
-              className={`p-5 rounded-2xl border text-center transition-all cursor-pointer ${
-                settings.theme === 'light'
-                  ? 'border-[#c25e2e] bg-[#fbeee6]/60 text-[#1f1e1d] ring-2 ring-[#c25e2e]/20 shadow-xs'
-                  : 'border-[#ded7cb] dark:border-[#383530] bg-white dark:bg-[#22201e] text-[#736e65] dark:text-[#9e978b]'
-              }`}
-            >
-              <Sun className="w-6 h-6 mx-auto mb-2 text-[#c25e2e]" />
-              <div className="font-serif text-xs font-semibold">Light Theme</div>
-              <div className="text-[11px] text-[#8c857b]">Warm parchment ecru</div>
-            </button>
-
-            <button
-              onClick={() => updateSettings({ theme: 'dark' })}
-              className={`p-5 rounded-2xl border text-center transition-all cursor-pointer ${
-                settings.theme === 'dark'
-                  ? 'border-[#d97757] bg-[#2d221c]/60 text-[#ede8e1] ring-2 ring-[#d97757]/20 shadow-xs'
-                  : 'border-[#ded7cb] dark:border-[#383530] bg-white dark:bg-[#22201e] text-[#736e65] dark:text-[#9e978b]'
-              }`}
-            >
-              <Moon className="w-6 h-6 mx-auto mb-2 text-[#d97757]" />
-              <div className="font-serif text-xs font-semibold">Dark Theme</div>
-              <div className="text-[11px] text-[#8c857b]">Warm espresso obsidian</div>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: ABOUT */}
-      {activeTab === 'about' && (
-        <div className="rounded-2xl bg-white dark:bg-[#22201e] border border-[#ded7cb] dark:border-[#383530] p-6 space-y-4 shadow-xs text-xs text-[#615c54] dark:text-[#9e978b]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#c25e2e] dark:bg-[#d97757] flex items-center justify-center text-white font-serif font-bold text-base shadow-xs">
-              T
-            </div>
-            <div>
-              <h3 className="font-serif text-base font-semibold text-[#1f1e1d] dark:text-[#ede8e1]">TITAN AI</h3>
-              <p className="text-[#c25e2e] dark:text-[#d97757] font-medium text-xs">
-                Intelligence, Working Together.
-              </p>
-            </div>
-          </div>
-
-          <p className="leading-relaxed text-[#2d2b28] dark:text-[#ded8ce]">
-            TITAN AI is a collective multi-model intelligence platform that rejects single-model routing in favor of true multi-perspective reasoning. By querying independent neural architectures concurrently, coordinating peer critiques, debating contentious trade-offs, and distilling unified master syntheses, TITAN AI elevates AI-assisted thinking to empirical consensus.
-          </p>
-
-          <div className="grid grid-cols-2 gap-3 pt-2 text-[11px] font-mono">
-            <div className="p-3 rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530]">
-              <span className="text-[#8c857b]">Version:</span> 1.0.0 Production Core
-            </div>
-            <div className="p-3 rounded-xl bg-[#fbfaf8] dark:bg-[#1a1917] border border-[#ded7cb] dark:border-[#383530]">
-              <span className="text-[#8c857b]">Design:</span> Claude UI (Warm Ecru & Espresso)
-            </div>
           </div>
         </div>
       )}

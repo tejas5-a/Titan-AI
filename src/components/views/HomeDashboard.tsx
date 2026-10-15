@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   MessagesSquare,
-  Swords,
   Compass,
   Code2,
   Eye,
-  ArrowRight,
   Sparkles,
   Cpu,
-  Layers,
   Key,
-  FolderGit2,
-  Clock,
-  ShieldCheck,
   ChevronRight,
   ArrowUp,
-  Paperclip,
 } from 'lucide-react';
 
 export function HomeDashboard() {
@@ -25,16 +18,13 @@ export function HomeDashboard() {
     models,
     providers,
     sessions,
-    projects,
     runCollaboration,
     setActiveSession,
-    settings,
   } = useApp();
 
   const [promptInput, setPromptInput] = useState('');
 
   const enabledModels = models.filter((m) => m.isEnabled);
-  const connectedProviders = providers.filter((p) => p.status === 'connected' || p.hasKey);
   const unconfiguredProviders = providers.filter((p) => p.status === 'needs_key');
 
   const handleQuickSubmit = (e: React.FormEvent) => {
@@ -51,12 +41,6 @@ export function HomeDashboard() {
       title: 'Collective Chat',
       desc: 'Multiple models analyze, peer review, and synthesize one master answer.',
       icon: <MessagesSquare className="w-5 h-5 text-[#c25e2e] dark:text-[#d97757]" />,
-    },
-    {
-      id: 'debate',
-      title: 'AI Debate Studio',
-      desc: 'Stage structured debates on controversial architectures, algorithms, or strategies.',
-      icon: <Swords className="w-5 h-5 text-[#c25e2e] dark:text-[#d97757]" />,
     },
     {
       id: 'research',
@@ -80,7 +64,7 @@ export function HomeDashboard() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 space-y-10">
-      {/* CLAUDE STYLE GREETING */}
+      {/* GREETING */}
       <div className="text-center space-y-2.5 pt-4">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#f2ecdf] dark:bg-[#282622] text-[#824422] dark:text-[#e08967] border border-[#e5ded0] dark:border-[#38342e]">
           <Sparkles className="w-3.5 h-3.5 text-[#c25e2e] dark:text-[#d97757]" />
@@ -94,7 +78,7 @@ export function HomeDashboard() {
         </p>
       </div>
 
-      {/* CLAUDE STYLE COMPOSER BOX */}
+      {/* COMPOSER BOX */}
       <div className="max-w-2xl mx-auto">
         <form
           onSubmit={handleQuickSubmit}
@@ -107,7 +91,8 @@ export function HomeDashboard() {
             placeholder="Ask a question, propose an architecture, or request collaborative analysis across all enabled models..."
             className="w-full resize-none bg-transparent p-2 text-sm text-[#1f1e1d] dark:text-[#ede8e1] placeholder-[#9c9589] focus:outline-hidden leading-relaxed"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 handleQuickSubmit(e);
               }
             }}
@@ -119,10 +104,9 @@ export function HomeDashboard() {
                 <Cpu className="w-3 h-3 text-[#c25e2e] dark:text-[#d97757]" />
                 <span>{enabledModels.length} models active</span>
               </span>
-              <span className="text-[11px] hidden sm:inline">• Ctrl + Enter</span>
+              <span className="text-[11px] hidden sm:inline">• Enter to send</span>
             </div>
 
-            {/* Claude round send button */}
             <button
               type="submit"
               disabled={!promptInput.trim()}
@@ -135,7 +119,7 @@ export function HomeDashboard() {
         </form>
       </div>
 
-      {/* PROVIDER NOTICE IF NEEDED */}
+      {/* PROVIDER NOTICE */}
       {unconfiguredProviders.length > 0 && (
         <div className="rounded-xl border border-[#ded7cb] dark:border-[#383530] bg-[#f8f5ee] dark:bg-[#201e1b] p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -160,12 +144,12 @@ export function HomeDashboard() {
         </div>
       )}
 
-      {/* QUICK WORKSPACE TILES */}
+      {/* SPECIALIZED WORKSPACES */}
       <div className="space-y-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8a8377] dark:text-[#8f887f]">
           Specialized Workspaces
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3.5">
           {quickActions.map((action) => (
             <button
               key={action.id}
@@ -197,7 +181,7 @@ export function HomeDashboard() {
           </h3>
           <button
             onClick={() => setActiveView('history')}
-            className="text-xs text-[#c25e2e] dark:text-[#d97757] hover:underline"
+            className="text-xs text-[#c25e2e] dark:text-[#d97757] hover:underline cursor-pointer"
           >
             View all
           </button>
