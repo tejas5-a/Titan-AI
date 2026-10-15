@@ -8,7 +8,7 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "build:electron": "esbuild electron/main.ts --bundle --platform=node --target=node16 --outfile=dist-electron/main.cjs --external:electron && esbuild electron/preload.ts --bundle --platform=node --target=node16 --outfile=dist-electron/preload.cjs --external:electron && esbuild server.ts --bundle --platform=node --target=node16 --outfile=dist-electron/server.cjs --external:vite",
-    "package:win32": "electron-builder --win --ia32 --config electron-builder.json",
+    "package:win32": "electron-builder --win --ia32 --config electron-builder.json --publish never",
     "start": "tsx server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist dist-electron dist-electron-build server.js",

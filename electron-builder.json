@@ -6,6 +6,7 @@
     "output": "dist-electron-build",
     "buildResources": "build"
   },
+  "publish": null,
   "electronVersion": "22.3.27",
   "files": [
     "dist/**/*",
